@@ -437,6 +437,8 @@ app.listen(PORT, () => {
   console.log(`📁 Translations directory: ${TRANSLATIONS_DIR}`);
   console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`📦 Node.js version: ${process.version}`);
+  console.log(`📂 Current working directory: ${process.cwd()}`);
+  console.log(`📂 __dirname: ${__dirname}`);
   
   // 檢查翻譯目錄是否存在
   fs.pathExists(TRANSLATIONS_DIR).then(exists => {
@@ -452,5 +454,17 @@ app.listen(PORT, () => {
     }
   }).catch(err => {
     console.error(`❌ Error checking translations directory:`, err);
+  });
+  
+  // 檢查前端建置檔案是否存在
+  const buildPath = path.join(__dirname, 'client', 'build');
+  fs.pathExists(buildPath).then(exists => {
+    if (exists) {
+      console.log(`✅ Frontend build directory exists`);
+    } else {
+      console.log(`⚠️  Frontend build directory does not exist`);
+    }
+  }).catch(err => {
+    console.error(`❌ Error checking build directory:`, err);
   });
 }); 

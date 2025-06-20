@@ -1,10 +1,5 @@
 [build]
 builder = "nixpacks"
 
-[deploy]
-startCommand = "cd web-app && npm start"
-healthcheckPath = "/"
-healthcheckTimeout = 300
-
 [env]
 NODE_ENV = "production" 
