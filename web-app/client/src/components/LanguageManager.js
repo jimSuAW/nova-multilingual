@@ -13,12 +13,13 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // 如果有預選語系，使用它；否則使用第一個語系
     if (preselectedLanguage && languages.some(lang => lang.code === preselectedLanguage)) {
       setSelectedLanguage(preselectedLanguage);
     } else if (languages.length > 0 && !selectedLanguage) {
       setSelectedLanguage(languages[0].code);
     }
-  }, [languages, preselectedLanguage, selectedLanguage]);
+  }, [languages, preselectedLanguage]); // 移除 selectedLanguage 依賴
 
   useEffect(() => {
     if (selectedLanguage) {
