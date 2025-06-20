@@ -10,7 +10,8 @@ const Navbar = () => {
       <div className="navbar-content">
         <div className="navbar-brand">
           <Link to="/" className="brand-link">
-            🌍 Nova 翻譯管理
+            <img src="/astral-logo.svg" alt="Astral Web" style={{width: '24px', height: '24px', marginRight: '8px'}} />
+            Nova 翻譯管理
           </Link>
         </div>
         
