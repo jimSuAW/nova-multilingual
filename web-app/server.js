@@ -130,15 +130,18 @@ app.post('/api/languages', async (req, res) => {
     }
     
     const targetPath = path.join(TRANSLATIONS_DIR, languageCode);
-    
+    console.log(`[Language Creation] Attempting to create directory at: ${targetPath}`);
+
     if (await fs.pathExists(targetPath)) {
       return res.status(400).json({ error: 'Language already exists' });
     }
     
     await fs.ensureDir(targetPath);
+    console.log(`[Language Creation] Successfully created directory: ${targetPath}`);
     
     // 複製基準語系檔案結構
     const basePath = path.join(TRANSLATIONS_DIR, 'en');
+    console.log(`[Language Creation] Copying from base path: ${basePath}`);
     const baseFiles = await fs.readdir(basePath);
     const jsonFiles = baseFiles.filter(file => file.endsWith('.json'));
     
@@ -153,11 +156,12 @@ app.post('/api/languages', async (req, res) => {
         await fs.writeJson(targetFilePath, template, { spaces: 2 });
       }
     }
+    console.log(`[Language Creation] Successfully created language template for: ${languageCode}`);
 
     res.json({ success: true, languageCode });
   } catch (error) {
-    console.error('Error creating language:', error);
-    res.status(500).json({ error: 'Failed to create language' });
+    console.error(`[Language Creation] Failed to create language ${req.body.languageCode}:`, error);
+    res.status(500).json({ error: 'Failed to create language. Check server logs for details.' });
   }
 });
 
