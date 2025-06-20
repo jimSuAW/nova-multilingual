@@ -397,13 +397,18 @@ async function getTranslationStats(obj, baseObj = null) {
         if (value === '' || value === null || value === undefined) {
           empty++;
         } else {
-          // 檢查是否與基準語系相同（英文）
-          const baseValue = baseObj && baseObj[key];
-          if (baseValue && value === baseValue) {
-            // 如果與基準語系相同，不算已翻譯
-            empty++;
-          } else {
+          // 如果沒有基準語系（即本身就是基準語系），直接計算非空值
+          if (!baseObj) {
             translated++;
+          } else {
+            // 檢查是否與基準語系相同（英文）
+            const baseValue = baseObj && baseObj[key];
+            if (baseValue && value === baseValue) {
+              // 如果與基準語系相同，不算已翻譯
+              empty++;
+            } else {
+              translated++;
+            }
           }
         }
       }

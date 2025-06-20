@@ -9,6 +9,7 @@ const TranslationEditor = ({ languages }) => {
   const { language, filename } = useParams();
   const [content, setContent] = useState(null);
   const [originalContent, setOriginalContent] = useState(null);
+  const [englishContent, setEnglishContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -19,9 +20,21 @@ const TranslationEditor = ({ languages }) => {
   const fetchFileContent = async () => {
     try {
       setLoading(true);
+      
+      // 載入當前語系的翻譯
       const response = await axios.get(`/api/languages/${language}/files/${filename}`);
       setContent(response.data);
       setOriginalContent(JSON.stringify(response.data, null, 2));
+      
+      // 如果不是英文語系，載入英文翻譯作為 placeholder
+      if (language !== 'en') {
+        try {
+          const englishResponse = await axios.get(`/api/languages/en/files/${filename}`);
+          setEnglishContent(englishResponse.data);
+        } catch (error) {
+          console.warn('無法載入英文翻譯:', error);
+        }
+      }
     } catch (error) {
       console.error('Error fetching file content:', error);
       toast.error('載入文件失敗');
@@ -36,11 +49,21 @@ const TranslationEditor = ({ languages }) => {
       await axios.put(`/api/languages/${language}/files/${filename}`, {
         content: content
       });
-      toast.success('保存成功');
+      
+      // 顯示成功提示
+      toast.success('翻譯保存成功！', {
+        duration: 3000,
+        style: {
+          background: '#10b981',
+          color: 'white',
+          fontWeight: 'bold'
+        }
+      });
+      
       setOriginalContent(JSON.stringify(content, null, 2));
     } catch (error) {
       console.error('Error saving file:', error);
-      toast.error('保存失敗');
+      toast.error('保存失敗，請重試');
     } finally {
       setSaving(false);
     }
@@ -70,6 +93,24 @@ const TranslationEditor = ({ languages }) => {
     return newObj;
   };
 
+  // 獲取英文翻譯作為 placeholder
+  const getEnglishPlaceholder = (path) => {
+    if (!englishContent) return '輸入翻譯...';
+    
+    const keys = path.split('.');
+    let current = englishContent;
+    
+    for (const key of keys) {
+      if (current && typeof current === 'object' && current[key] !== undefined) {
+        current = current[key];
+      } else {
+        return '輸入翻譯...';
+      }
+    }
+    
+    return typeof current === 'string' ? `英文: ${current}` : '輸入翻譯...';
+  };
+
   const renderTranslationFields = (obj, path = '') => {
     return Object.entries(obj).map(([key, value]) => {
       const currentPath = path ? `${path}.${key}` : key;
@@ -95,7 +136,7 @@ const TranslationEditor = ({ languages }) => {
                 const newContent = updateNestedValue(content, currentPath, e.target.value);
                 setContent(newContent);
               }}
-              placeholder="輸入翻譯..."
+              placeholder={getEnglishPlaceholder(currentPath)}
             />
           </div>
         );
