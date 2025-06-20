@@ -350,17 +350,98 @@ app.get('*', (req, res) => {
 // 輔助函數
 function getLanguageName(code) {
   const languageNames = {
+    // 基本語系（向後兼容）
     'en': 'English',
-    'zh-TW': '繁體中文',
-    'zh-CN': '簡體中文',
-    'ja': '日本語',
-    'ko': '한국어',
-    'es': 'Español',
-    'fr': 'Français',
-    'de': 'Deutsch',
-    'it': 'Italiano',
-    'pt': 'Português',
-    'ru': 'Русский'
+    'zh-TW': 'Chinese (Traditional)',
+    'zh-CN': 'Chinese (Simplified)',
+    'ja': 'Japanese',
+    'ko': 'Korean',
+    'es': 'Spanish',
+    'fr': 'French',
+    'de': 'German',
+    'it': 'Italian',
+    'pt': 'Portuguese',
+    'ru': 'Russian',
+    
+    // 標準語系代碼
+    // 中文變體
+    'zh-Hant-TW': 'Chinese (Traditional, Taiwan)',
+    'zh-Hans-CN': 'Chinese (Simplified, China)',
+    'zh-Hant-HK': 'Chinese (Traditional, Hong Kong)',
+    'zh-Hant-MO': 'Chinese (Traditional, Macau)',
+    'zh-Hans-SG': 'Chinese (Simplified, Singapore)',
+    
+    // 主要歐洲語言
+    'es-ES': 'Spanish (Spain)',
+    'es-MX': 'Spanish (Mexico)',
+    'es-AR': 'Spanish (Argentina)',
+    'fr-FR': 'French (France)',
+    'fr-CA': 'French (Canada)',
+    'de-DE': 'German (Germany)',
+    'de-AT': 'German (Austria)',
+    'de-CH': 'German (Switzerland)',
+    'it-IT': 'Italian (Italy)',
+    'it-CH': 'Italian (Switzerland)',
+    'pt-PT': 'Portuguese (Portugal)',
+    'pt-BR': 'Portuguese (Brazil)',
+    'ru-RU': 'Russian (Russia)',
+    'pl-PL': 'Polish (Poland)',
+    'nl-NL': 'Dutch (Netherlands)',
+    'nl-BE': 'Dutch (Belgium)',
+    'sv-SE': 'Swedish (Sweden)',
+    'da-DK': 'Danish (Denmark)',
+    'fi-FI': 'Finnish (Finland)',
+    'nb-NO': 'Norwegian Bokmål (Norway)',
+    'nn-NO': 'Norwegian Nynorsk (Norway)',
+    
+    // 亞洲語言
+    'ja-JP': 'Japanese (Japan)',
+    'ko-KR': 'Korean (South Korea)',
+    'th-TH': 'Thai (Thailand)',
+    'vi-VN': 'Vietnamese (Vietnam)',
+    'hi-IN': 'Hindi (India)',
+    'bn-BD': 'Bengali (Bangladesh)',
+    'bn-IN': 'Bengali (India)',
+    'id-ID': 'Indonesian (Indonesia)',
+    'ms-MY': 'Malay (Malaysia)',
+    'ms-BN': 'Malay (Brunei)',
+    
+    // 中東和非洲
+    'ar-SA': 'Arabic (Saudi Arabia)',
+    'ar-EG': 'Arabic (Egypt)',
+    'ar-AE': 'Arabic (United Arab Emirates)',
+    'tr-TR': 'Turkish (Turkey)',
+    'he-IL': 'Hebrew (Israel)',
+    'fa-IR': 'Persian (Iran)',
+    'fa-AF': 'Persian (Afghanistan)',
+    
+    // 英語變體
+    'en-US': 'English (United States)',
+    'en-GB': 'English (United Kingdom)',
+    'en-AU': 'English (Australia)',
+    'en-CA': 'English (Canada)',
+    'en-IN': 'English (India)',
+    'en-SG': 'English (Singapore)',
+    'en-ZA': 'English (South Africa)',
+    
+    // 其他重要語言
+    'uk-UA': 'Ukrainian (Ukraine)',
+    'cs-CZ': 'Czech (Czech Republic)',
+    'hu-HU': 'Hungarian (Hungary)',
+    'ro-RO': 'Romanian (Romania)',
+    'bg-BG': 'Bulgarian (Bulgaria)',
+    'hr-HR': 'Croatian (Croatia)',
+    'sk-SK': 'Slovak (Slovakia)',
+    'sl-SI': 'Slovenian (Slovenia)',
+    'et-EE': 'Estonian (Estonia)',
+    'lv-LV': 'Latvian (Latvia)',
+    'lt-LT': 'Lithuanian (Lithuania)',
+    'mt-MT': 'Maltese (Malta)',
+    'el-GR': 'Greek (Greece)',
+    'cy-GB': 'Welsh (United Kingdom)',
+    'ga-IE': 'Irish (Ireland)',
+    'is-IS': 'Icelandic (Iceland)',
+    'fo-FO': 'Faroese (Faroe Islands)'
   };
   
   return languageNames[code] || code;

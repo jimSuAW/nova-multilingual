@@ -4,27 +4,60 @@ import { X } from 'lucide-react';
 const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
   const [languageCode, setLanguageCode] = useState('');
 
+  // 使用標準的語系代碼列表
   const languageOptions = [
-    { code: 'zh-TW', name: '繁體中文 (台灣)' },
-    { code: 'zh-CN', name: '簡體中文 (中國)' },
-    { code: 'es', name: 'Español (西班牙語)' },
-    { code: 'fr', name: 'Français (法語)' },
-    { code: 'de', name: 'Deutsch (德語)' },
-    { code: 'ja', name: '日本語 (日語)' },
-    { code: 'ko', name: '한국어 (韓語)' },
-    { code: 'pt', name: 'Português (葡萄牙語)' },
-    { code: 'ru', name: 'Русский (俄語)' },
-    { code: 'it', name: 'Italiano (義大利語)' },
-    { code: 'ar', name: 'العربية (阿拉伯語)' },
-    { code: 'hi', name: 'हिन्दी (印地語)' },
-    { code: 'tr', name: 'Türkçe (土耳其語)' },
-    { code: 'pl', name: 'Polski (波蘭語)' },
-    { code: 'vi', name: 'Tiếng Việt (越南語)' },
-    { code: 'th', name: 'ไทย (泰語)' },
-    { code: 'nl', name: 'Nederlands (荷蘭語)' },
-    { code: 'sv', name: 'Svenska (瑞典語)' },
-    { code: 'da', name: 'Dansk (丹麥語)' },
-    { code: 'fi', name: 'Suomi (芬蘭語)' }
+    // 中文變體
+    { code: 'zh-Hant-TW', name: 'Chinese (Traditional, Taiwan) (zh-Hant-TW)' },
+    { code: 'zh-Hans-CN', name: 'Chinese (Simplified, China) (zh-Hans-CN)' },
+    { code: 'zh-Hant-HK', name: 'Chinese (Traditional, Hong Kong SAR China) (zh-Hant-HK)' },
+    
+    // 主要歐洲語言
+    { code: 'es-ES', name: 'Spanish (Spain) (es-ES)' },
+    { code: 'fr-FR', name: 'French (France) (fr-FR)' },
+    { code: 'de-DE', name: 'German (Germany) (de-DE)' },
+    { code: 'it-IT', name: 'Italian (Italy) (it-IT)' },
+    { code: 'pt-PT', name: 'Portuguese (Portugal) (pt-PT)' },
+    { code: 'pt-BR', name: 'Portuguese (Brazil) (pt-BR)' },
+    { code: 'ru-RU', name: 'Russian (Russia) (ru-RU)' },
+    { code: 'pl-PL', name: 'Polish (Poland) (pl-PL)' },
+    { code: 'nl-NL', name: 'Dutch (Netherlands) (nl-NL)' },
+    { code: 'sv-SE', name: 'Swedish (Sweden) (sv-SE)' },
+    { code: 'da-DK', name: 'Danish (Denmark) (da-DK)' },
+    { code: 'fi-FI', name: 'Finnish (Finland) (fi-FI)' },
+    { code: 'nb-NO', name: 'Norwegian Bokmål (Norway) (nb-NO)' },
+    
+    // 亞洲語言
+    { code: 'ja-JP', name: 'Japanese (Japan) (ja-JP)' },
+    { code: 'ko-KR', name: 'Korean (South Korea) (ko-KR)' },
+    { code: 'th-TH', name: 'Thai (Thailand) (th-TH)' },
+    { code: 'vi-VN', name: 'Vietnamese (Vietnam) (vi-VN)' },
+    { code: 'hi-IN', name: 'Hindi (India) (hi-IN)' },
+    { code: 'bn-BD', name: 'Bengali (Bangladesh) (bn-BD)' },
+    { code: 'id-ID', name: 'Indonesian (Indonesia) (id-ID)' },
+    { code: 'ms-MY', name: 'Malay (Malaysia) (ms-MY)' },
+    
+    // 中東和非洲
+    { code: 'ar-SA', name: 'Arabic (Saudi Arabia) (ar-SA)' },
+    { code: 'ar-EG', name: 'Arabic (Egypt) (ar-EG)' },
+    { code: 'tr-TR', name: 'Turkish (Turkey) (tr-TR)' },
+    { code: 'he-IL', name: 'Hebrew (Israel) (he-IL)' },
+    { code: 'fa-IR', name: 'Persian (Iran) (fa-IR)' },
+    
+    // 英語變體
+    { code: 'en-US', name: 'English (United States) (en-US)' },
+    { code: 'en-GB', name: 'English (United Kingdom) (en-GB)' },
+    { code: 'en-AU', name: 'English (Australia) (en-AU)' },
+    { code: 'en-CA', name: 'English (Canada) (en-CA)' },
+    
+    // 其他重要語言
+    { code: 'uk-UA', name: 'Ukrainian (Ukraine) (uk-UA)' },
+    { code: 'cs-CZ', name: 'Czech (Czech Republic) (cs-CZ)' },
+    { code: 'hu-HU', name: 'Hungarian (Hungary) (hu-HU)' },
+    { code: 'ro-RO', name: 'Romanian (Romania) (ro-RO)' },
+    { code: 'bg-BG', name: 'Bulgarian (Bulgaria) (bg-BG)' },
+    { code: 'hr-HR', name: 'Croatian (Croatia) (hr-HR)' },
+    { code: 'sk-SK', name: 'Slovak (Slovakia) (sk-SK)' },
+    { code: 'sl-SI', name: 'Slovenian (Slovenia) (sl-SI)' }
   ];
 
   const availableLanguages = languageOptions.filter(
@@ -61,7 +94,7 @@ const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
               <option value="">請選擇語系</option>
               {availableLanguages.map(lang => (
                 <option key={lang.code} value={lang.code}>
-                  {lang.name} ({lang.code})
+                  {lang.name}
                 </option>
               ))}
             </select>
