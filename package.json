@@ -4,10 +4,9 @@
   "description": "A modern multilingual translation management system",
   "main": "web-app/server.js",
   "scripts": {
-    "start": "cd web-app && npm start",
-    "build": "cd web-app && npm run build",
-    "install-deps": "cd web-app && npm install",
-    "postinstall": "npm run install-deps"
+    "start": "node web-app/server.js",
+    "build": "cd web-app/client && npm run build",
+    "postinstall": "cd web-app && npm install && cd client && npm install"
   },
   "keywords": [
     "translation",
