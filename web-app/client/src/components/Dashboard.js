@@ -113,8 +113,8 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
       
       <div className="container">
         <div className="page-header">
-          <h1 className="page-title">翻譯管理系統</h1>
-          <p className="page-subtitle">管理您的多語系翻譯文件</p>
+          <h1 className="page-title">Nova 翻譯管理</h1>
+          <p className="page-subtitle">請設定好語系後選擇匯出翻譯包，並交給 Astral Web 的 PM</p>
         </div>
 
         {/* 統計卡片 */}

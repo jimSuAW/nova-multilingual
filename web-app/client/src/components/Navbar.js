@@ -8,9 +8,11 @@ const Navbar = () => {
   return (
     <nav className="navbar">
       <div className="navbar-content">
-        <Link to="/" className="navbar-brand">
-          🌍 翻譯管理系統
-        </Link>
+        <div className="navbar-brand">
+          <Link to="/" className="brand-link">
+            🌍 Nova 翻譯管理
+          </Link>
+        </div>
         
         <ul className="navbar-nav">
           <li>
