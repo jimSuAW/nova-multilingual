@@ -1,7 +1,10 @@
 # Dependencies
 node_modules/
+package-lock.json
 web-app/node_modules/
+web-app/package-lock.json
 web-app/client/node_modules/
+web-app/client/package-lock.json
 
 # Build outputs
 web-app/client/build/
