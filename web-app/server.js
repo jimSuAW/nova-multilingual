@@ -207,11 +207,14 @@ app.get('/api/languages/:language/stats', async (req, res) => {
       const filePath = path.join(langPath, file);
       const content = await fs.readJson(filePath);
       
-      // 讀取基準語系檔案進行比較
-      const baseFilePath = path.join(TRANSLATIONS_DIR, 'en', file);
       let baseContent = null;
-      if (await fs.pathExists(baseFilePath)) {
-        baseContent = await fs.readJson(baseFilePath);
+      
+      // 只有非英文語系才需要載入基準語系進行比較
+      if (language !== 'en') {
+        const baseFilePath = path.join(TRANSLATIONS_DIR, 'en', file);
+        if (await fs.pathExists(baseFilePath)) {
+          baseContent = await fs.readJson(baseFilePath);
+        }
       }
       
       const stats = await getTranslationStats(content, baseContent);
