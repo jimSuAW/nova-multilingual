@@ -4,60 +4,60 @@ import { X } from 'lucide-react';
 const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
   const [languageCode, setLanguageCode] = useState('');
 
-  // 使用標準的語系代碼列表
+  // 使用本地化名稱的語系代碼列表
   const languageOptions = [
     // 中文變體
-    { code: 'zh-Hant-TW', name: 'Chinese (Traditional, Taiwan) (zh-Hant-TW)' },
-    { code: 'zh-Hans-CN', name: 'Chinese (Simplified, China) (zh-Hans-CN)' },
-    { code: 'zh-Hant-HK', name: 'Chinese (Traditional, Hong Kong SAR China) (zh-Hant-HK)' },
+    { code: 'zh-Hant-TW', name: '繁體中文 zh-Hant-TW' },
+    { code: 'zh-Hans-CN', name: '简体中文 zh-Hans-CN' },
+    { code: 'zh-Hant-HK', name: '繁體中文（香港）zh-Hant-HK' },
     
     // 主要歐洲語言
-    { code: 'es-ES', name: 'Spanish (Spain) (es-ES)' },
-    { code: 'fr-FR', name: 'French (France) (fr-FR)' },
-    { code: 'de-DE', name: 'German (Germany) (de-DE)' },
-    { code: 'it-IT', name: 'Italian (Italy) (it-IT)' },
-    { code: 'pt-PT', name: 'Portuguese (Portugal) (pt-PT)' },
-    { code: 'pt-BR', name: 'Portuguese (Brazil) (pt-BR)' },
-    { code: 'ru-RU', name: 'Russian (Russia) (ru-RU)' },
-    { code: 'pl-PL', name: 'Polish (Poland) (pl-PL)' },
-    { code: 'nl-NL', name: 'Dutch (Netherlands) (nl-NL)' },
-    { code: 'sv-SE', name: 'Swedish (Sweden) (sv-SE)' },
-    { code: 'da-DK', name: 'Danish (Denmark) (da-DK)' },
-    { code: 'fi-FI', name: 'Finnish (Finland) (fi-FI)' },
-    { code: 'nb-NO', name: 'Norwegian Bokmål (Norway) (nb-NO)' },
+    { code: 'es-ES', name: 'Español es-ES' },
+    { code: 'fr-FR', name: 'Français fr-FR' },
+    { code: 'de-DE', name: 'Deutsch de-DE' },
+    { code: 'it-IT', name: 'Italiano it-IT' },
+    { code: 'pt-PT', name: 'Português pt-PT' },
+    { code: 'pt-BR', name: 'Português (Brasil) pt-BR' },
+    { code: 'ru-RU', name: 'Русский ru-RU' },
+    { code: 'pl-PL', name: 'Polski pl-PL' },
+    { code: 'nl-NL', name: 'Nederlands nl-NL' },
+    { code: 'sv-SE', name: 'Svenska sv-SE' },
+    { code: 'da-DK', name: 'Dansk da-DK' },
+    { code: 'fi-FI', name: 'Suomi fi-FI' },
+    { code: 'nb-NO', name: 'Norsk bokmål nb-NO' },
     
     // 亞洲語言
-    { code: 'ja-JP', name: 'Japanese (Japan) (ja-JP)' },
-    { code: 'ko-KR', name: 'Korean (South Korea) (ko-KR)' },
-    { code: 'th-TH', name: 'Thai (Thailand) (th-TH)' },
-    { code: 'vi-VN', name: 'Vietnamese (Vietnam) (vi-VN)' },
-    { code: 'hi-IN', name: 'Hindi (India) (hi-IN)' },
-    { code: 'bn-BD', name: 'Bengali (Bangladesh) (bn-BD)' },
-    { code: 'id-ID', name: 'Indonesian (Indonesia) (id-ID)' },
-    { code: 'ms-MY', name: 'Malay (Malaysia) (ms-MY)' },
+    { code: 'ja-JP', name: '日本語 ja-JP' },
+    { code: 'ko-KR', name: '한국어 ko-KR' },
+    { code: 'th-TH', name: 'ไทย th-TH' },
+    { code: 'vi-VN', name: 'Tiếng Việt vi-VN' },
+    { code: 'hi-IN', name: 'हिन्दी hi-IN' },
+    { code: 'bn-BD', name: 'বাংলা bn-BD' },
+    { code: 'id-ID', name: 'Bahasa Indonesia id-ID' },
+    { code: 'ms-MY', name: 'Bahasa Melayu ms-MY' },
     
     // 中東和非洲
-    { code: 'ar-SA', name: 'Arabic (Saudi Arabia) (ar-SA)' },
-    { code: 'ar-EG', name: 'Arabic (Egypt) (ar-EG)' },
-    { code: 'tr-TR', name: 'Turkish (Turkey) (tr-TR)' },
-    { code: 'he-IL', name: 'Hebrew (Israel) (he-IL)' },
-    { code: 'fa-IR', name: 'Persian (Iran) (fa-IR)' },
+    { code: 'ar-SA', name: 'العربية ar-SA' },
+    { code: 'ar-EG', name: 'العربية (مصر) ar-EG' },
+    { code: 'tr-TR', name: 'Türkçe tr-TR' },
+    { code: 'he-IL', name: 'עברית he-IL' },
+    { code: 'fa-IR', name: 'فارسی fa-IR' },
     
     // 英語變體
-    { code: 'en-US', name: 'English (United States) (en-US)' },
-    { code: 'en-GB', name: 'English (United Kingdom) (en-GB)' },
-    { code: 'en-AU', name: 'English (Australia) (en-AU)' },
-    { code: 'en-CA', name: 'English (Canada) (en-CA)' },
+    { code: 'en-US', name: 'English (US) en-US' },
+    { code: 'en-GB', name: 'English (UK) en-GB' },
+    { code: 'en-AU', name: 'English (Australia) en-AU' },
+    { code: 'en-CA', name: 'English (Canada) en-CA' },
     
     // 其他重要語言
-    { code: 'uk-UA', name: 'Ukrainian (Ukraine) (uk-UA)' },
-    { code: 'cs-CZ', name: 'Czech (Czech Republic) (cs-CZ)' },
-    { code: 'hu-HU', name: 'Hungarian (Hungary) (hu-HU)' },
-    { code: 'ro-RO', name: 'Romanian (Romania) (ro-RO)' },
-    { code: 'bg-BG', name: 'Bulgarian (Bulgaria) (bg-BG)' },
-    { code: 'hr-HR', name: 'Croatian (Croatia) (hr-HR)' },
-    { code: 'sk-SK', name: 'Slovak (Slovakia) (sk-SK)' },
-    { code: 'sl-SI', name: 'Slovenian (Slovenia) (sl-SI)' }
+    { code: 'uk-UA', name: 'Українська uk-UA' },
+    { code: 'cs-CZ', name: 'Čeština cs-CZ' },
+    { code: 'hu-HU', name: 'Magyar hu-HU' },
+    { code: 'ro-RO', name: 'Română ro-RO' },
+    { code: 'bg-BG', name: 'Български bg-BG' },
+    { code: 'hr-HR', name: 'Hrvatski hr-HR' },
+    { code: 'sk-SK', name: 'Slovenčina sk-SK' },
+    { code: 'sl-SI', name: 'Slovenščina sl-SI' }
   ];
 
   const availableLanguages = languageOptions.filter(
