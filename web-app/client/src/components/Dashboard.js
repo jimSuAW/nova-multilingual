@@ -209,9 +209,11 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
 const LanguageCard = ({ language, onLanguageUpdate }) => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [files, setFiles] = useState([]);
 
   useEffect(() => {
     fetchLanguageStats();
+    fetchLanguageFiles();
   }, [language.code]);
 
   const fetchLanguageStats = async () => {
@@ -223,6 +225,15 @@ const LanguageCard = ({ language, onLanguageUpdate }) => {
       console.error('Error fetching language stats:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchLanguageFiles = async () => {
+    try {
+      const response = await axios.get(`/api/languages/${language.code}/files`);
+      setFiles(response.data);
+    } catch (error) {
+      console.error('Error fetching language files:', error);
     }
   };
 
@@ -238,6 +249,25 @@ const LanguageCard = ({ language, onLanguageUpdate }) => {
     } catch (error) {
       toast.error(error.response?.data?.error || '刪除失敗');
     }
+  };
+
+  // 獲取第一個翻譯文件名稱用於編輯連結
+  const getFirstFileName = () => {
+    if (files.length === 0) {
+      return 'common.json'; // 默認文件
+    }
+    
+    // 優先順序：common > auth > product > 其他
+    const preferredFiles = ['common.json', 'auth.json', 'product.json'];
+    
+    for (const preferred of preferredFiles) {
+      if (files.some(file => file.name === preferred)) {
+        return preferred;
+      }
+    }
+    
+    // 如果沒有偏好文件，返回第一個文件
+    return files[0].name;
   };
 
   return (
@@ -274,7 +304,7 @@ const LanguageCard = ({ language, onLanguageUpdate }) => {
             
             <div className="language-actions">
               <Link 
-                to={`/languages`}
+                to={`/editor/${language.code}/${getFirstFileName()}`}
                 className="btn btn-primary"
                 style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}
               >
