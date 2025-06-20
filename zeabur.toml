@@ -2,7 +2,7 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "cd web-app && npm install && cd client && npm install && npm run build && cd .. && node server.js"
+startCommand = "cd web-app && npm start"
 healthcheckPath = "/"
 healthcheckTimeout = 300
 

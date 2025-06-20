@@ -329,6 +329,12 @@ app.post('/api/languages/:language/translate', async (req, res) => {
 // 靜態文件服務
 app.use(express.static(path.join(__dirname, 'client', 'build')));
 
+// 錯誤處理中間件
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
 // 所有其他路由都返回 React 應用程式
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
@@ -429,4 +435,22 @@ async function autoTranslate(languageCode) {
 app.listen(PORT, () => {
   console.log(`🚀 Translation Manager Web Server running on port ${PORT}`);
   console.log(`📁 Translations directory: ${TRANSLATIONS_DIR}`);
+  console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📦 Node.js version: ${process.version}`);
+  
+  // 檢查翻譯目錄是否存在
+  fs.pathExists(TRANSLATIONS_DIR).then(exists => {
+    if (exists) {
+      console.log(`✅ Translations directory exists`);
+    } else {
+      console.log(`⚠️  Translations directory does not exist, creating...`);
+      fs.ensureDir(TRANSLATIONS_DIR).then(() => {
+        console.log(`✅ Translations directory created`);
+      }).catch(err => {
+        console.error(`❌ Failed to create translations directory:`, err);
+      });
+    }
+  }).catch(err => {
+    console.error(`❌ Error checking translations directory:`, err);
+  });
 }); 
