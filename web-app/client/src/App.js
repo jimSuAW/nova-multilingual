@@ -70,6 +70,15 @@ function App() {
             } 
           />
           <Route 
+            path="/languages/:preselectedLanguage" 
+            element={
+              <LanguageManager 
+                languages={languages} 
+                onLanguageUpdate={fetchLanguages}
+              />
+            } 
+          />
+          <Route 
             path="/editor/:language/:filename" 
             element={
               <TranslationEditor 

@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { ArrowLeft, FileText, Edit, Trash2, Zap } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Navbar from './Navbar';
 
 const LanguageManager = ({ languages, onLanguageUpdate }) => {
-  const [selectedLanguage, setSelectedLanguage] = useState(null);
+  const { preselectedLanguage } = useParams();
+  const [selectedLanguage, setSelectedLanguage] = useState('');
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (languages.length > 0 && !selectedLanguage) {
+    if (preselectedLanguage && languages.some(lang => lang.code === preselectedLanguage)) {
+      setSelectedLanguage(preselectedLanguage);
+    } else if (languages.length > 0 && !selectedLanguage) {
       setSelectedLanguage(languages[0].code);
     }
-  }, [languages, selectedLanguage]);
+  }, [languages, preselectedLanguage, selectedLanguage]);
 
   useEffect(() => {
     if (selectedLanguage) {
