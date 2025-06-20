@@ -2,13 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import axios from 'axios';
+import './App.css';
+
+import Navbar from './components/Navbar';
 import Dashboard from './components/Dashboard';
 import LanguageManager from './components/LanguageManager';
 import TranslationEditor from './components/TranslationEditor';
-import './App.css';
 
-// 設置 axios 基礎 URL
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+// 設定 API 基礎 URL
+if (process.env.NODE_ENV === 'production') {
+  // 生產環境使用相對路徑（同域名）
+  axios.defaults.baseURL = '';
+} else {
+  // 開發環境使用 localhost
+  axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+}
 
 function App() {
   const [languages, setLanguages] = useState([]);
