@@ -323,10 +323,13 @@ app.post('/api/languages/:language/translate', async (req, res) => {
       return res.status(404).json({ error: 'Language not found' });
     }
     
-    // 執行自動翻譯
+    console.log(`[Auto Translate] Starting optimized translation for ${language}`);
+    
+    // 執行優化後的自動翻譯
     await autoTranslate(language);
     
-    res.json({ success: true, message: 'Translation completed successfully' });
+    console.log(`[Auto Translate] Completed translation for ${language}`);
+    res.json({ success: true, message: 'High-speed translation completed successfully' });
   } catch (error) {
     console.error('Error translating language:', error);
     res.status(500).json({ error: 'Failed to translate language' });

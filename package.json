@@ -1,22 +1,46 @@
 {
   "name": "nova-multilingual",
   "version": "1.0.0",
-  "description": "A modern multilingual translation management system",
+  "description": "A modern multilingual translation management system powered by Google Cloud Translation",
   "main": "web-app/server.js",
   "scripts": {
     "start": "node web-app/server.js",
     "build": "cd web-app/client && npm run build",
-    "postinstall": "cd web-app && npm install && cd client && npm install"
+    "postinstall": "cd web-app && npm install && cd client && npm install",
+
+    "translate": "node scripts/auto-translator.js",
+    "translate:ja": "node scripts/auto-translator.js ja",
+    "translate:zh-tw": "node scripts/auto-translator.js zh-tw",
+    "translate:zh-cn": "node scripts/auto-translator.js zh-cn",
+    "translate:ko": "node scripts/auto-translator.js ko",
+    "translate:fr": "node scripts/auto-translator.js fr",
+    "translate:de": "node scripts/auto-translator.js de",
+    "translate:es": "node scripts/auto-translator.js es",
+    "translate:pt": "node scripts/auto-translator.js pt",
+    "translate:it": "node scripts/auto-translator.js it",
+    "translate:ru": "node scripts/auto-translator.js ru",
+    "translation:create": "node scripts/translation-manager.js create",
+    "translation:validate": "node scripts/translation-validator.js validate",
+    "translation:export": "node scripts/translation-manager.js export",
+    "translation:import": "node scripts/translation-manager.js import",
+    "translation:stats": "node scripts/translation-manager.js stats"
   },
   "keywords": [
     "translation",
     "i18n",
     "multilingual",
+    "google-cloud",
+    "gcp",
     "web-interface"
   ],
   "author": "jimSuAW",
   "license": "MIT",
   "engines": {
     "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@google-cloud/translate": "^8.0.2",
+    "archiver": "^5.3.1",
+    "unzipper": "^0.10.14"
   }
 } 
