@@ -12,12 +12,15 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // 過濾掉基底語系，只顯示可編輯的語系
+  const editableLanguages = languages.filter(lang => !lang.isBase);
+
   useEffect(() => {
-    // 如果有預選語系，使用它；否則使用第一個語系
-    if (preselectedLanguage && languages.some(lang => lang.code === preselectedLanguage)) {
+    // 如果有預選語系，使用它；否則使用第一個可編輯語系
+    if (preselectedLanguage && editableLanguages.some(lang => lang.code === preselectedLanguage)) {
       setSelectedLanguage(preselectedLanguage);
-    } else if (languages.length > 0 && !selectedLanguage) {
-      setSelectedLanguage(languages[0].code);
+    } else if (editableLanguages.length > 0 && !selectedLanguage) {
+      setSelectedLanguage(editableLanguages[0].code);
     }
   }, [languages, preselectedLanguage]); // 移除 selectedLanguage 依賴
 
@@ -51,7 +54,7 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
       onLanguageUpdate();
       
       if (selectedLanguage === languageCode) {
-        setSelectedLanguage(languages.find(lang => lang.code !== languageCode)?.code || null);
+        setSelectedLanguage(editableLanguages.find(lang => lang.code !== languageCode)?.code || null);
       }
     } catch (error) {
       toast.error(error.response?.data?.error || '刪除失敗');
@@ -122,44 +125,50 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
           <div className="card">
             <h3>語系列表</h3>
             <div className="language-list">
-              {languages.map((language) => (
-                <div
-                  key={language.code}
-                  className={`language-item ${selectedLanguage === language.code ? 'active' : ''}`}
-                  onClick={() => setSelectedLanguage(language.code)}
-                >
-                  <div className="language-info">
-                    <div className="language-name">{language.name}</div>
-                    <div className="language-code">{language.code}</div>
+              {editableLanguages.length > 0 ? (
+                editableLanguages.map((language) => (
+                  <div
+                    key={language.code}
+                    className={`language-item ${selectedLanguage === language.code ? 'active' : ''}`}
+                    onClick={() => setSelectedLanguage(language.code)}
+                  >
+                    <div className="language-info">
+                      <div className="language-name">{language.name}</div>
+                      <div className="language-code">{language.code}</div>
+                    </div>
+                    <div className="language-actions">
+                      <button
+                        className="btn btn-warning btn-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleAutoTranslate(language.code);
+                        }}
+                        title="自動翻譯"
+                      >
+                        <Zap size={14} />
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteLanguage(language.code);
+                        }}
+                        title="刪除語系"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
-                  <div className="language-actions">
-                    {!language.isBase && (
-                      <>
-                        <button
-                          className="btn btn-warning btn-sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAutoTranslate(language.code);
-                          }}
-                          title="自動翻譯"
-                        >
-                          <Zap size={14} />
-                        </button>
-                        <button
-                          className="btn btn-danger btn-sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteLanguage(language.code);
-                          }}
-                          title="刪除語系"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </>
-                    )}
-                  </div>
+                ))
+              ) : (
+                <div className="empty-state">
+                  <p>🌍 尚未建立任何語系</p>
+                  <p className="text-muted">請先到儀表板新增語系</p>
+                  <Link to="/" className="btn btn-primary btn-sm">
+                    前往新增語系
+                  </Link>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -168,7 +177,7 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
             {selectedLanguage ? (
               <>
                 <div className="flex-between mb-4">
-                  <h3>翻譯文件 - {languages.find(lang => lang.code === selectedLanguage)?.name}</h3>
+                  <h3>翻譯文件 - {editableLanguages.find(lang => lang.code === selectedLanguage)?.name}</h3>
                   <span className="text-muted">{files.length} 個文件</span>
                 </div>
 

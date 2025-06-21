@@ -96,7 +96,7 @@ class TranslationManager {
     });
   }
 
-  // 匯入 ZIP 並取代 translations 資料夾
+  // 匯入 ZIP 並合併翻譯（保護基底語系）
   async importTranslations(zipPath) {
     return new Promise((resolve, reject) => {
       console.log(`🔄 正在匯入 ${zipPath}...`);
@@ -107,37 +107,133 @@ class TranslationManager {
         return;
       }
 
-      // 備份現有的 translations 資料夾
+      const tempDir = './temp-import';
       const backupPath = `${this.baseDir}-backup-${Date.now()}`;
+      
+      // 備份現有的 translations 資料夾
       if (fs.existsSync(this.baseDir)) {
         console.log(`📦 備份現有資料到: ${backupPath}`);
-        fs.renameSync(this.baseDir, backupPath);
+        this.copyDirectory(this.baseDir, backupPath);
       }
 
-      // 解壓縮
+      // 清理臨時資料夾
+      if (fs.existsSync(tempDir)) {
+        fs.rmSync(tempDir, { recursive: true, force: true });
+      }
+
+      // 解壓縮到臨時資料夾
       fs.createReadStream(zipPath)
-        .pipe(unzipper.Extract({ path: '.' }))
+        .pipe(unzipper.Extract({ path: tempDir }))
         .on('close', () => {
-          console.log('✅ 匯入完成！');
-          console.log(`📁 translations 資料夾已更新`);
-          console.log(`💾 舊資料備份於: ${backupPath}`);
-          resolve();
+          try {
+            // 尋找解壓縮後的 translations 資料夾
+            const extractedTranslationsPath = path.join(tempDir, 'translations');
+            if (!fs.existsSync(extractedTranslationsPath)) {
+              throw new Error('ZIP 檔案中找不到 translations 資料夾');
+            }
+            
+            // 獲取所有語系資料夾
+            const importedLanguages = fs.readdirSync(extractedTranslationsPath)
+              .filter(item => {
+                const itemPath = path.join(extractedTranslationsPath, item);
+                return fs.statSync(itemPath).isDirectory();
+              });
+            
+            console.log(`📂 發現語系: ${importedLanguages.join(', ')}`);
+            
+            // 確保 translations 資料夾存在
+            if (!fs.existsSync(this.baseDir)) {
+              fs.mkdirSync(this.baseDir, { recursive: true });
+            }
+            
+            // 合併每個語系（跳過 en 基底語系）
+            let importedCount = 0;
+            for (const lang of importedLanguages) {
+              // 🚨 重要：保護基底語系 en
+              if (lang === 'en') {
+                console.log(`⚠️  跳過基底語系 'en'，不允許覆蓋`);
+                continue;
+              }
+              
+              const sourceLangPath = path.join(extractedTranslationsPath, lang);
+              const targetLangPath = path.join(this.baseDir, lang);
+              
+              console.log(`📋 處理語系: ${lang}`);
+              
+              // 確保目標語系資料夾存在
+              if (!fs.existsSync(targetLangPath)) {
+                fs.mkdirSync(targetLangPath, { recursive: true });
+              }
+              
+              // 複製所有 JSON 檔案
+              const files = fs.readdirSync(sourceLangPath)
+                .filter(file => file.endsWith('.json'));
+              
+              for (const file of files) {
+                const sourceFilePath = path.join(sourceLangPath, file);
+                const targetFilePath = path.join(targetLangPath, file);
+                
+                console.log(`  📄 複製: ${lang}/${file}`);
+                fs.copyFileSync(sourceFilePath, targetFilePath);
+              }
+              
+              importedCount++;
+            }
+            
+            // 清理臨時資料夾
+            fs.rmSync(tempDir, { recursive: true, force: true });
+            
+            console.log('✅ 匯入完成！');
+            console.log(`📁 已匯入 ${importedCount} 個語系（跳過基底語系 en）`);
+            console.log(`💾 舊資料備份於: ${backupPath}`);
+            resolve();
+            
+          } catch (error) {
+            console.error('❌ 匯入處理失敗:', error);
+            
+            // 清理臨時資料夾
+            if (fs.existsSync(tempDir)) {
+              fs.rmSync(tempDir, { recursive: true, force: true });
+            }
+            
+            reject(error);
+          }
         })
         .on('error', (err) => {
-          console.error('❌ 匯入失敗:', err);
+          console.error('❌ 解壓縮失敗:', err);
           
-          // 恢復備份
-          if (fs.existsSync(backupPath)) {
-            if (fs.existsSync(this.baseDir)) {
-              fs.rmSync(this.baseDir, { recursive: true, force: true });
-            }
-            fs.renameSync(backupPath, this.baseDir);
-            console.log('🔄 已恢復原始資料');
+          // 清理臨時資料夾
+          if (fs.existsSync(tempDir)) {
+            fs.rmSync(tempDir, { recursive: true, force: true });
           }
           
           reject(err);
         });
     });
+  }
+
+  // 輔助函數：複製資料夾
+  copyDirectory(source, destination) {
+    if (!fs.existsSync(source)) return;
+    
+    if (!fs.existsSync(destination)) {
+      fs.mkdirSync(destination, { recursive: true });
+    }
+    
+    const items = fs.readdirSync(source);
+    
+    for (const item of items) {
+      const sourcePath = path.join(source, item);
+      const destPath = path.join(destination, item);
+      
+      const stats = fs.statSync(sourcePath);
+      
+      if (stats.isDirectory()) {
+        this.copyDirectory(sourcePath, destPath);
+      } else {
+        fs.copyFileSync(sourcePath, destPath);
+      }
+    }
   }
 
   // 列出所有語系

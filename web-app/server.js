@@ -305,7 +305,7 @@ app.get('/api/translations/export', async (req, res) => {
   }
 });
 
-// 匯入 ZIP 並取代 translations 資料夾
+// 匯入 ZIP 並合併翻譯（保護基底語系）
 app.post('/api/translations/import', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -315,41 +315,108 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
     console.log('[Import] Starting translations import...');
     
     const zipPath = req.file.path;
+    const tempExtractPath = path.join(__dirname, 'temp-import');
     const backupPath = `${TRANSLATIONS_DIR}-backup-${Date.now()}`;
     
     // 備份現有的 translations 資料夾
     if (await fs.pathExists(TRANSLATIONS_DIR)) {
       console.log(`[Import] Backing up existing data to: ${backupPath}`);
-      await fs.move(TRANSLATIONS_DIR, backupPath);
+      await fs.copy(TRANSLATIONS_DIR, backupPath);
     }
     
-    // 解壓縮
+    // 清理臨時解壓縮資料夾
+    if (await fs.pathExists(tempExtractPath)) {
+      await fs.remove(tempExtractPath);
+    }
+    
+    // 解壓縮到臨時資料夾
     await new Promise((resolve, reject) => {
       fs.createReadStream(zipPath)
-        .pipe(unzipper.Extract({ path: path.dirname(TRANSLATIONS_DIR) }))
+        .pipe(unzipper.Extract({ path: tempExtractPath }))
         .on('close', resolve)
         .on('error', reject);
     });
     
-    // 清理上傳的檔案
+    // 尋找解壓縮後的 translations 資料夾
+    const extractedTranslationsPath = path.join(tempExtractPath, 'translations');
+    if (!await fs.pathExists(extractedTranslationsPath)) {
+      throw new Error('ZIP 檔案中找不到 translations 資料夾');
+    }
+    
+    // 獲取所有語系資料夾
+    const importedLanguages = await fs.readdir(extractedTranslationsPath);
+    console.log(`[Import] Found languages in ZIP: ${importedLanguages.join(', ')}`);
+    
+    // 確保 translations 資料夾存在
+    await fs.ensureDir(TRANSLATIONS_DIR);
+    
+    // 合併每個語系（跳過 en 基底語系）
+    for (const lang of importedLanguages) {
+      const sourceLangPath = path.join(extractedTranslationsPath, lang);
+      const targetLangPath = path.join(TRANSLATIONS_DIR, lang);
+      
+      // 檢查是否為資料夾
+      const stats = await fs.stat(sourceLangPath);
+      if (!stats.isDirectory()) {
+        console.log(`[Import] Skipping non-directory: ${lang}`);
+        continue;
+      }
+      
+      // 🚨 重要：保護基底語系 en
+      if (lang === 'en') {
+        console.log(`[Import] ⚠️  跳過基底語系 'en'，不允許覆蓋`);
+        continue;
+      }
+      
+      console.log(`[Import] Processing language: ${lang}`);
+      
+      // 確保目標語系資料夾存在
+      await fs.ensureDir(targetLangPath);
+      
+      // 複製所有 JSON 檔案
+      const files = await fs.readdir(sourceLangPath);
+      const jsonFiles = files.filter(file => file.endsWith('.json'));
+      
+      for (const file of jsonFiles) {
+        const sourceFilePath = path.join(sourceLangPath, file);
+        const targetFilePath = path.join(targetLangPath, file);
+        
+        console.log(`[Import] Copying: ${lang}/${file}`);
+        await fs.copy(sourceFilePath, targetFilePath);
+      }
+    }
+    
+    // 清理臨時檔案
+    await fs.remove(tempExtractPath);
     await fs.remove(zipPath);
     
-    console.log('[Import] Import completed successfully');
+    const importedCount = importedLanguages.filter(lang => lang !== 'en').length;
+    console.log(`[Import] Import completed successfully. Imported ${importedCount} languages.`);
+    
     res.json({ 
       success: true, 
-      message: 'Import completed successfully',
+      message: `匯入完成！已匯入 ${importedCount} 個語系（跳過基底語系 en）`,
+      importedLanguages: importedLanguages.filter(lang => lang !== 'en'),
       backup: backupPath 
     });
     
   } catch (error) {
     console.error('[Import] Import failed:', error);
     
-    // 清理上傳的檔案
+    // 清理臨時檔案
     if (req.file) {
       await fs.remove(req.file.path).catch(() => {});
     }
     
-    res.status(500).json({ error: 'Failed to import translations' });
+    const tempExtractPath = path.join(__dirname, 'temp-import');
+    if (await fs.pathExists(tempExtractPath)) {
+      await fs.remove(tempExtractPath).catch(() => {});
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to import translations', 
+      details: error.message 
+    });
   }
 });
 

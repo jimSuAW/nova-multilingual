@@ -22,19 +22,16 @@ class AutoTranslator {
     this.currentEngine = 'gcp';
   }
 
-  // GCP Cloud Translation API (主要引擎) - 改進版
+  // GCP Cloud Translation API (主要引擎) - 直接翻譯版
   async translateWithGCP(texts, targetLang) {
     if (!this.gcpConfig.apiKey) {
       throw new Error('Google Cloud Translation API key not configured');
     }
 
     return new Promise((resolve, reject) => {
-      // 為短詞和容易誤解的詞彙添加上下文
-      const contextualTexts = texts.map(text => this.addContext(text));
-      
-      // 準備批次翻譯請求
+      // 直接翻譯，不添加上下文（問題太多）
       const body = {
-        q: contextualTexts,
+        q: texts,
         source: 'en',
         target: targetLang,
         format: 'text'
@@ -64,11 +61,9 @@ class AutoTranslator {
             if (res.statusCode === 200) {
               const result = JSON.parse(data);
               if (result.data && result.data.translations) {
-                const translations = result.data.translations.map((item, index) => {
-                  const translatedText = item.translatedText || null;
-                  // 移除添加的上下文，只保留實際翻譯
-                  return this.removeContext(translatedText, texts[index]);
-                });
+                const translations = result.data.translations.map(item => 
+                  item.translatedText || null
+                );
                 resolve(translations);
               } else {
                 console.error('GCP API unexpected response format:', result);
@@ -95,90 +90,126 @@ class AutoTranslator {
     });
   }
 
-  // 為特定詞彙添加上下文 - 簡化版
-  addContext(text) {
-    // 只對最容易誤解的短詞添加最小上下文
-    const contextMap = {
-      'Ms.': 'Ms. title',      // 最小化上下文
-      'Mr.': 'Mr. title', 
-      'Mx.': 'Mx. title',
-      'newsletters': 'email newsletters',  // 簡化上下文
-      'Member': 'user member',
-      'Account': 'user account',
-      'Male': 'gender male',
-      'Female': 'gender female',
-      'Birth': 'birth date',
-      'Gender': 'user gender',
-      'Password': 'login password',
-      'Logout': 'user logout',
-      'Login': 'user login'
+  // 精準翻譯字典 - 直接對應
+  getDirectTranslation(text, targetLang) {
+    const directTranslations = {
+      'zh-Hant-TW': {
+        'Male': '男性',
+        'Female': '女性',
+        'Other': '其他',
+        'Mr.': '先生',
+        'Ms.': '女士',
+        'Mrs.': '太太',
+        'Mx.': '',
+        'Dr.': '博士',
+        'Prof.': '教授',
+        'Email': '電子郵件',
+        'Phone': '電話',
+        'Birth': '生日',
+        'Gender': '性別',
+        'Password': '密碼',
+        'Account': '帳戶',
+        'Member': '會員',
+        'Logout': '登出',
+        'Login': '登入',
+        'Newsletter': '電子報',
+        'Newsletters': '電子報'
+      },
+      'zh-CN': {
+        'Male': '男性',
+        'Female': '女性',
+        'Other': '其他',
+        'Mr.': '先生',
+        'Ms.': '女士',
+        'Mrs.': '太太',
+        'Mx.': '',
+        'Dr.': '博士',
+        'Prof.': '教授',
+        'Email': '邮件',
+        'Phone': '电话',
+        'Birth': '生日',
+        'Gender': '性别',
+        'Password': '密码',
+        'Account': '账户',
+        'Member': '会员',
+        'Logout': '登出',
+        'Login': '登录',
+        'Newsletter': '电子报',
+        'Newsletters': '电子报'
+      },
+      'ja': {
+        'Male': '男性',
+        'Female': '女性',
+        'Other': 'その他',
+        'Mr.': '様',
+        'Ms.': '様',
+        'Mrs.': '様',
+        'Mx.': '様',
+        'Dr.': '博士',
+        'Prof.': '教授',
+        'Email': 'メール',
+        'Phone': '電話',
+        'Birth': '生年月日',
+        'Gender': '性別',
+        'Password': 'パスワード',
+        'Account': 'アカウント',
+        'Member': 'メンバー',
+        'Logout': 'ログアウト',
+        'Login': 'ログイン',
+        'Newsletter': 'ニュースレター',
+        'Newsletters': 'ニュースレター'
+      }
     };
     
-    return contextMap[text] || text;
+    const translations = directTranslations[targetLang] || {};
+    return translations[text] || null;
   }
 
-  // 移除上下文，提取核心翻譯
-  removeContext(translatedText, originalText) {
-    if (!translatedText) return null;
-    
-    // 特殊處理規則 - 支援中英文括號
-    const cleanupRules = [
-      // 移除各種括號內的解釋 (支援中英文括號)
-      /^([^(（]+)\s*[\(（][^)）]*[\)）]\s*$/,
-      // 移除冒號後的解釋 (中英文冒號)
-      /^([^:：]+)[：:].*/,
-      // 移除逗號後的解釋 (中英文逗號)
-      /^([^,，]+)[，,].*/,
-      // 移除「的」字解釋
-      /^([^的]+)的.*/,
-      // 移除 for/for的 解釋
-      /^([^f]+)\s*for\s*.*/,
-      /^([^為]+)為.*/
-    ];
-    
-    let result = translatedText;
-    
-    // 依序套用清理規則
-    for (const rule of cleanupRules) {
-      const match = result.match(rule);
-      if (match && match[1]) {
-        result = match[1].trim();
-        break; // 找到第一個匹配就停止
-      }
-    }
-    
-    // 額外清理：移除多餘的空格和標點
-    result = result.replace(/\s+/g, ' ').trim();
-    result = result.replace(/[。，、；：！？]+$/, ''); // 移除結尾標點
-    
-    return result;
-  }
-
-  // 翻譯驗證和修正
+  // 翻譯驗證和修正 - 優先使用精準字典
   validateAndCorrectTranslation(originalText, translation, targetLang) {
     if (!translation) return translation;
     
-    // 常見錯誤修正字典
+    // 第一優先：使用精準翻譯字典
+    const directTranslation = this.getDirectTranslation(originalText, targetLang);
+    if (directTranslation !== null) {
+      console.log(`✅ 使用精準字典: "${originalText}" -> "${directTranslation}"`);
+      return directTranslation;
+    }
+    
+    // 第二優先：修正常見的錯誤翻譯
     const corrections = {
       'zh-Hant-TW': {
-        // 稱謂修正
-        '多發性硬化症': '女士',  // Ms. 被誤譯
-        '微軟': '女士',          // Ms. 被誤譯為 Microsoft
-        '毫秒': '女士',          // Ms. 被誤譯為 milliseconds
-        '時事通訊': '電子報',     // newsletter 更符合台灣用語
-        '通訊': '電子報',        // newsletter 簡化版
-        '帳號': '帳戶',          // account 統一用詞
-        '賬戶': '帳戶',          // 簡體字修正
-        '邮件': '電子郵件',      // 簡體字修正
-        '电话': '電話',          // 簡體字修正
-        '密码': '密碼',          // 簡體字修正
-        '登录': '登入',          // 台灣慣用語
-        '注册': '註冊',          // 台灣慣用語
+        '多發性硬化症': '女士',
+        '微軟': '女士',
+        '毫秒': '女士',
+        '先生稱號': '先生',
+        '女士稱號': '女士',
+        '太太稱號': '太太',
+        '性別 男': '男性',
+        '性別 女': '女性',
+        '性別男': '男性',
+        '性別女': '女性',
+        '時事通訊': '電子報',
+        '通訊': '電子報',
+        '帳號': '帳戶',
+        '賬戶': '帳戶',
+        '邮件': '電子郵件',
+        '电话': '電話',
+        '密码': '密碼',
+        '登录': '登入',
+        '注册': '註冊',
       },
       'zh-CN': {
         '多发性硬化症': '女士',
         '微软': '女士',
         '毫秒': '女士',
+        '先生称号': '先生',
+        '女士称号': '女士',
+        '太太称号': '太太',
+        '性别 男': '男性',
+        '性别 女': '女性',
+        '性别男': '男性',
+        '性别女': '女性',
         '時事通訊': '新闻简报',
         '帳戶': '账户',
         '電子郵件': '邮件',
@@ -186,10 +217,10 @@ class AutoTranslator {
         '密碼': '密码',
       },
       'ja': {
-        '多発性硬化症': '様',     // Ms. 被誤譯
-        'マイクロソフト': '様',   // Ms. 被誤譯為 Microsoft
-        'ミリ秒': '様',          // Ms. 被誤譯為 milliseconds
-        'ニュースレター': 'メールマガジン', // 更常用的日文
+        '多発性硬化症': '様',
+        'マイクロソフト': '様',
+        'ミリ秒': '様',
+        'ニュースレター': 'メールマガジン',
       }
     };
     
@@ -200,68 +231,7 @@ class AutoTranslator {
     for (const [wrong, correct] of Object.entries(langCorrections)) {
       if (correctedTranslation.includes(wrong)) {
         correctedTranslation = correctedTranslation.replace(wrong, correct);
-      }
-    }
-    
-    // 特殊規則：檢查原文和翻譯的長度差異
-    if (originalText.length <= 5 && correctedTranslation.length > originalText.length * 3) {
-      console.log(`⚠️  疑似錯誤翻譯: "${originalText}" -> "${correctedTranslation}" (長度異常)`);
-      
-      // 短詞的備用翻譯
-      const shortWordFallbacks = {
-        'zh-Hant-TW': {
-          'Ms.': '女士',
-          'Mr.': '先生', 
-          'Mx.': '',
-          'Email': '電子郵件',
-          'Phone': '電話',
-          'Male': '男性',
-          'Female': '女性',
-          'Birth': '生日',
-          'Gender': '性別',
-          'Password': '密碼',
-          'Account': '帳戶',
-          'Member': '會員',
-          'Logout': '登出',
-          'Login': '登入'
-        },
-        'zh-CN': {
-          'Ms.': '女士',
-          'Mr.': '先生',
-          'Mx.': '',
-          'Email': '邮件',
-          'Phone': '电话',
-          'Male': '男性',
-          'Female': '女性',
-          'Birth': '生日',
-          'Gender': '性别',
-          'Password': '密码',
-          'Account': '账户',
-          'Member': '会员',
-          'Logout': '登出',
-          'Login': '登录'
-        },
-        'ja': {
-          'Ms.': '様',
-          'Mr.': '様',
-          'Mx.': '様',
-          'Email': 'メール',
-          'Phone': '電話',
-          'Male': '男性',
-          'Female': '女性',
-          'Birth': '生年月日',
-          'Gender': '性別',
-          'Password': 'パスワード',
-          'Account': 'アカウント',
-          'Member': 'メンバー',
-          'Logout': 'ログアウト',
-          'Login': 'ログイン'
-        }
-      };
-      
-      const fallbacks = shortWordFallbacks[targetLang] || {};
-      if (fallbacks[originalText]) {
-        correctedTranslation = fallbacks[originalText];
+        console.log(`🔧 修正翻譯: "${wrong}" -> "${correct}"`);
       }
     }
     

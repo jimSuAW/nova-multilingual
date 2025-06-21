@@ -7,6 +7,9 @@ import Navbar from './Navbar';
 import AddLanguageModal from './AddLanguageModal';
 
 const Dashboard = ({ languages, onLanguageUpdate }) => {
+  // 過濾掉基底語系，只顯示可編輯的語系
+  const editableLanguages = languages.filter(lang => !lang.isBase);
+  
   const [stats, setStats] = useState({
     totalLanguages: 0,
     totalFiles: 0,
@@ -22,15 +25,15 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
   }, [languages]);
 
   const calculateStats = async () => {
-    const totalLanguages = languages.length;
-    const totalFiles = languages.reduce((sum, lang) => sum + lang.fileCount, 0);
+    const totalLanguages = editableLanguages.length;
+    const totalFiles = editableLanguages.reduce((sum, lang) => sum + lang.fileCount, 0);
     
-    // 從 API 獲取所有語系的統計數據
+    // 從 API 獲取所有可編輯語系的統計數據
     let totalKeys = 0;
     let totalCompletion = 0;
     let validLanguages = 0;
     
-    for (const language of languages) {
+    for (const language of editableLanguages) {
       try {
         const response = await axios.get(`/api/languages/${language.code}/stats`);
         const stats = response.data;
@@ -191,7 +194,7 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
           <button 
             className="btn btn-success"
             onClick={handleExport}
-            disabled={languages.length === 0}
+            disabled={editableLanguages.length === 0}
           >
             <Download size={16} />
             匯出翻譯包
@@ -221,9 +224,9 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
         </div>
 
         {/* 語系卡片 */}
-        {languages.length > 0 ? (
+        {editableLanguages.length > 0 ? (
           <div className="language-grid">
-            {languages.map((language) => (
+            {editableLanguages.map((language) => (
               <LanguageCard 
                 key={language.code} 
                 language={language}
@@ -234,9 +237,10 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
         ) : (
           <div className="empty-state">
             <div className="empty-state-icon">Globe</div>
-            <h2 className="empty-state-title">還沒有語系</h2>
+            <h2 className="empty-state-title">🌍 尚未建立任何語系</h2>
             <p className="empty-state-description">
-              開始新增您的第一個語系來管理翻譯
+              基底語系 (en) 已準備就緒！<br/>
+              請新增您要翻譯的目標語系開始管理翻譯
             </p>
             <button 
               className="btn btn-primary"
