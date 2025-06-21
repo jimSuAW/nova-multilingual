@@ -95,24 +95,23 @@ class AutoTranslator {
     });
   }
 
-  // 為特定詞彙添加上下文
+  // 為特定詞彙添加上下文 - 簡化版
   addContext(text) {
+    // 只對最容易誤解的短詞添加最小上下文
     const contextMap = {
-      'Ms.': 'Ms. (title for woman)',
-      'Mr.': 'Mr. (title for man)', 
-      'Mx.': 'Mx. (gender-neutral title)',
-      'newsletters': 'newsletters (email subscription)',
-      'Member': 'Member (user account)',
-      'Account': 'Account (user profile)',
-      'Email': 'Email (electronic mail)',
-      'Phone': 'Phone (telephone number)',
-      'Male': 'Male (gender)',
-      'Female': 'Female (gender)',
-      'Birth': 'Birth (date of birth)',
-      'Gender': 'Gender (male/female)',
-      'Password': 'Password (login credential)',
-      'Logout': 'Logout (sign out)',
-      'Login': 'Login (sign in)'
+      'Ms.': 'Ms. title',      // 最小化上下文
+      'Mr.': 'Mr. title', 
+      'Mx.': 'Mx. title',
+      'newsletters': 'email newsletters',  // 簡化上下文
+      'Member': 'user member',
+      'Account': 'user account',
+      'Male': 'gender male',
+      'Female': 'gender female',
+      'Birth': 'birth date',
+      'Gender': 'user gender',
+      'Password': 'login password',
+      'Logout': 'user logout',
+      'Login': 'user login'
     };
     
     return contextMap[text] || text;
@@ -122,24 +121,37 @@ class AutoTranslator {
   removeContext(translatedText, originalText) {
     if (!translatedText) return null;
     
-    // 特殊處理規則
-    const cleanupRules = {
-      // 移除括號內的解釋
-      pattern1: /^([^(]+)\s*\([^)]*\)$/,
-      // 移除冒號後的解釋  
-      pattern2: /^([^:：]+)[：:].*/,
-      // 移除逗號後的解釋
-      pattern3: /^([^,，]+)[，,].*/
-    };
+    // 特殊處理規則 - 支援中英文括號
+    const cleanupRules = [
+      // 移除各種括號內的解釋 (支援中英文括號)
+      /^([^(（]+)\s*[\(（][^)）]*[\)）]\s*$/,
+      // 移除冒號後的解釋 (中英文冒號)
+      /^([^:：]+)[：:].*/,
+      // 移除逗號後的解釋 (中英文逗號)
+      /^([^,，]+)[，,].*/,
+      // 移除「的」字解釋
+      /^([^的]+)的.*/,
+      // 移除 for/for的 解釋
+      /^([^f]+)\s*for\s*.*/,
+      /^([^為]+)為.*/
+    ];
     
-    for (const rule of Object.values(cleanupRules)) {
-      const match = translatedText.match(rule);
-      if (match) {
-        return match[1].trim();
+    let result = translatedText;
+    
+    // 依序套用清理規則
+    for (const rule of cleanupRules) {
+      const match = result.match(rule);
+      if (match && match[1]) {
+        result = match[1].trim();
+        break; // 找到第一個匹配就停止
       }
     }
     
-    return translatedText;
+    // 額外清理：移除多餘的空格和標點
+    result = result.replace(/\s+/g, ' ').trim();
+    result = result.replace(/[。，、；：！？]+$/, ''); // 移除結尾標點
+    
+    return result;
   }
 
   // 翻譯驗證和修正
