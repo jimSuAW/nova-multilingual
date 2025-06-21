@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Globe, FileText, Download } from 'lucide-react';
+import { Plus, Globe, FileText, Download, Upload } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Navbar from './Navbar';
@@ -15,6 +15,7 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
   });
   const [showAddModal, setShowAddModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     calculateStats();
@@ -73,38 +74,77 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
 
   const handleExport = async () => {
     try {
-      const selectedLanguages = languages.map(lang => lang.code);
-      
-      if (selectedLanguages.length === 0) {
-        toast.error('請選擇要匯出的語系');
+      if (languages.length === 0) {
+        toast.error('沒有語系可匯出');
         return;
       }
       
-      toast.loading('正在匯出翻譯包...');
+      toast.loading('🔄 正在匯出翻譯包...', { duration: 0 });
       
-      const response = await axios.post('/api/export', {
-        languages: selectedLanguages
+      const response = await axios.get('/api/translations/export', {
+        responseType: 'blob'
+      });
+      
+      // 創建下載連結
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `translations-${Date.now()}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.dismiss();
+      toast.success('📦 翻譯包匯出成功！');
+    } catch (error) {
+      toast.dismiss();
+      toast.error('❌ 匯出失敗：' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleImportTranslations = async (file) => {
+    if (!file) return;
+    
+    if (!file.name.endsWith('.zip')) {
+      toast.error('❌ 請選擇 ZIP 檔案');
+      return;
+    }
+    
+    if (!window.confirm('⚠️ 匯入將會取代現有的所有翻譯資料！\n\n確定要繼續嗎？\n（原資料會自動備份）')) {
+      return;
+    }
+    
+    try {
+      toast.loading('🔄 正在匯入翻譯資料...', { duration: 0 });
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post('/api/translations/import', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
       });
       
       toast.dismiss();
+      toast.success(`✅ 翻譯資料匯入成功！\n💾 舊資料已備份`);
       
-      if (response.data.success) {
-        toast.success('翻譯包匯出成功！');
-        console.log('Export path:', response.data.exportPath);
-        
-        // 提供下載連結
-        const downloadLink = document.createElement('a');
-        downloadLink.href = `/api/download-export?path=${encodeURIComponent(response.data.exportPath)}`;
-        downloadLink.download = `translations-${new Date().toISOString().slice(0, 10)}.zip`;
-        document.body.appendChild(downloadLink);
-        downloadLink.click();
-        document.body.removeChild(downloadLink);
-      }
+      // 重新載入頁面以更新語系列表
+      onLanguageUpdate();
     } catch (error) {
       toast.dismiss();
-      console.error('Export error:', error);
-      toast.error(error.response?.data?.error || '匯出失敗');
+      toast.error('❌ 匯入失敗：' + (error.response?.data?.error || error.message));
     }
+  };
+
+  const handleFileInputChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      handleImportTranslations(file);
+    }
+    // 重置 input 值，允許重複選擇同一檔案
+    event.target.value = '';
   };
 
   return (
@@ -156,6 +196,23 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
             <Download size={16} />
             匯出翻譯包
           </button>
+          
+          <button 
+            className="btn btn-warning"
+            onClick={() => fileInputRef.current?.click()}
+            title="匯入翻譯資料（會取代現有資料）"
+          >
+            <Upload size={16} />
+            匯入翻譯包
+          </button>
+          
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileInputChange}
+            accept=".zip"
+            style={{ display: 'none' }}
+          />
           
           <Link to="/languages" className="btn btn-secondary">
             <Globe size={16} />
