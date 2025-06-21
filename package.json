@@ -41,6 +41,7 @@
   "dependencies": {
     "@google-cloud/translate": "^8.0.2",
     "archiver": "^5.3.1",
-    "unzipper": "^0.10.14"
+    "unzipper": "^0.10.14",
+    "multer": "^1.4.5-lts.1"
   }
 } 

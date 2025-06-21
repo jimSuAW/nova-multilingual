@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
-import { ArrowLeft, FileText, Edit, Trash2, Zap } from 'lucide-react';
+import { ArrowLeft, FileText, Edit, Trash2, Zap, Download, Upload } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import Navbar from './Navbar';
@@ -11,6 +11,7 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('');
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     // 如果有預選語系，使用它；否則使用第一個語系
@@ -101,6 +102,76 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
     }
   };
 
+  const handleExportTranslations = async () => {
+    try {
+      toast.loading('🔄 正在匯出翻譯資料...', { duration: 0 });
+      
+      const response = await axios.get('/api/translations/export', {
+        responseType: 'blob'
+      });
+      
+      // 創建下載連結
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `translations-${Date.now()}.zip`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      
+      toast.dismiss();
+      toast.success('📦 翻譯資料匯出成功！');
+    } catch (error) {
+      toast.dismiss();
+      toast.error('❌ 匯出失敗：' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleImportTranslations = async (file) => {
+    if (!file) return;
+    
+    if (!file.name.endsWith('.zip')) {
+      toast.error('❌ 請選擇 ZIP 檔案');
+      return;
+    }
+    
+    if (!window.confirm('⚠️ 匯入將會取代現有的所有翻譯資料！\n\n確定要繼續嗎？\n（原資料會自動備份）')) {
+      return;
+    }
+    
+    try {
+      toast.loading('🔄 正在匯入翻譯資料...', { duration: 0 });
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await axios.post('/api/translations/import', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      toast.dismiss();
+      toast.success(`✅ 翻譯資料匯入成功！\n💾 舊資料已備份`);
+      
+      // 重新載入頁面以更新語系列表
+      window.location.reload();
+    } catch (error) {
+      toast.dismiss();
+      toast.error('❌ 匯入失敗：' + (error.response?.data?.error || error.message));
+    }
+  };
+
+  const handleFileInputChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      handleImportTranslations(file);
+    }
+    // 重置 input 值，允許重複選擇同一檔案
+    event.target.value = '';
+  };
+
   return (
     <div>
       <Navbar />
@@ -112,6 +183,29 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
               <ArrowLeft size={16} />
               返回儀表板
             </Link>
+            <button 
+              className="btn btn-success"
+              onClick={handleExportTranslations}
+              title="匯出所有翻譯資料"
+            >
+              <Download size={16} />
+              匯出翻譯
+            </button>
+            <button 
+              className="btn btn-warning"
+              onClick={() => fileInputRef.current?.click()}
+              title="匯入翻譯資料（會取代現有資料）"
+            >
+              <Upload size={16} />
+              匯入翻譯
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileInputChange}
+              accept=".zip"
+              style={{ display: 'none' }}
+            />
           </div>
           <h1 className="page-title">語系管理</h1>
           <p className="page-subtitle">管理翻譯文件和內容</p>

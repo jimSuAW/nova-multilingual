@@ -4,6 +4,9 @@ const path = require('path');
 const fs = require('fs-extra');
 const bodyParser = require('body-parser');
 const { spawn } = require('child_process');
+const multer = require('multer');
+const archiver = require('archiver');
+const unzipper = require('unzipper');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -12,6 +15,9 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+// 檔案上傳中間件
+const upload = multer({ dest: 'uploads/' });
 
 // 翻譯文件路徑
 const TRANSLATIONS_DIR = path.join(__dirname, '..', 'translations');
@@ -336,6 +342,87 @@ app.post('/api/languages/:language/translate', async (req, res) => {
   }
 });
 
+// 匯出 translations 資料夾為 ZIP
+app.get('/api/translations/export', async (req, res) => {
+  try {
+    console.log('[Export] Starting translations export...');
+    
+    const archive = archiver('zip', {
+      zlib: { level: 9 }
+    });
+
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="translations-${Date.now()}.zip"`);
+    
+    archive.pipe(res);
+    
+    // 將整個 translations 資料夾加入壓縮檔
+    archive.directory(TRANSLATIONS_DIR, 'translations');
+    
+    archive.on('error', (err) => {
+      console.error('[Export] Archive error:', err);
+      res.status(500).json({ error: 'Export failed' });
+    });
+    
+    archive.on('end', () => {
+      console.log('[Export] Export completed successfully');
+    });
+    
+    await archive.finalize();
+  } catch (error) {
+    console.error('[Export] Export failed:', error);
+    res.status(500).json({ error: 'Failed to export translations' });
+  }
+});
+
+// 匯入 ZIP 並取代 translations 資料夾
+app.post('/api/translations/import', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log('[Import] Starting translations import...');
+    
+    const zipPath = req.file.path;
+    const backupPath = `${TRANSLATIONS_DIR}-backup-${Date.now()}`;
+    
+    // 備份現有的 translations 資料夾
+    if (await fs.pathExists(TRANSLATIONS_DIR)) {
+      console.log(`[Import] Backing up existing data to: ${backupPath}`);
+      await fs.move(TRANSLATIONS_DIR, backupPath);
+    }
+    
+    // 解壓縮
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(zipPath)
+        .pipe(unzipper.Extract({ path: path.dirname(TRANSLATIONS_DIR) }))
+        .on('close', resolve)
+        .on('error', reject);
+    });
+    
+    // 清理上傳的檔案
+    await fs.remove(zipPath);
+    
+    console.log('[Import] Import completed successfully');
+    res.json({ 
+      success: true, 
+      message: 'Import completed successfully',
+      backup: backupPath 
+    });
+    
+  } catch (error) {
+    console.error('[Import] Import failed:', error);
+    
+    // 清理上傳的檔案
+    if (req.file) {
+      await fs.remove(req.file.path).catch(() => {});
+    }
+    
+    res.status(500).json({ error: 'Failed to import translations' });
+  }
+});
+
 // 靜態文件服務
 app.use(express.static(path.join(__dirname, 'client', 'build')));
 
@@ -509,19 +596,30 @@ async function getTranslationStats(obj, baseObj = null) {
 async function autoTranslate(languageCode) {
   return new Promise((resolve, reject) => {
     const translatorPath = path.join(__dirname, '..', 'scripts', 'auto-translator.js');
-    const child = spawn('node', [translatorPath, 'translate', languageCode], {
+    const child = spawn('node', [translatorPath, languageCode], {
       cwd: path.join(__dirname, '..')
+    });
+
+    child.stdout.on('data', (data) => {
+      console.log(`[Auto Translate] ${data.toString()}`);
+    });
+
+    child.stderr.on('data', (data) => {
+      console.error(`[Auto Translate Error] ${data.toString()}`);
     });
 
     child.on('close', (code) => {
       if (code === 0) {
+        console.log(`[Auto Translate] Successfully completed for ${languageCode}`);
         resolve();
       } else {
+        console.error(`[Auto Translate] Failed with code ${code} for ${languageCode}`);
         reject(new Error(`Translation failed with code ${code}`));
       }
     });
 
     child.on('error', (error) => {
+      console.error(`[Auto Translate] Process error for ${languageCode}:`, error);
       reject(error);
     });
   });
