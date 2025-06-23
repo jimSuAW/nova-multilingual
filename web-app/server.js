@@ -718,10 +718,8 @@ function countFields(obj) {
 // 輔助函數
 function getLanguageName(code) {
   const languageNames = {
-    // 基本語系（向後兼容）
-    'en': 'English',
-    'zh-TW': '繁體中文 zh-TW',
-    'zh-CN': '简体中文 zh-CN',
+    // 主流語系（無國家代碼）
+    'zh': '中文 zh',
     'ja': '日本語 ja',
     'ko': '한국어 ko',
     'es': 'Español es',
@@ -730,6 +728,12 @@ function getLanguageName(code) {
     'it': 'Italiano it',
     'pt': 'Português pt',
     'ru': 'Русский ru',
+    'ar': 'العربية ar',
+    
+    // 基本語系（向後兼容）
+    'en': 'English',
+    'zh-TW': '繁體中文 zh-TW',
+    'zh-CN': '简体中文 zh-CN',
     
     // 標準語系代碼
     // 中文變體

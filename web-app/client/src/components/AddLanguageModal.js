@@ -6,6 +6,21 @@ const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
 
   // 使用本地化名稱的語系代碼列表
   const languageOptions = [
+    // 主流語系（無國家代碼）
+    { code: 'zh', name: '中文 zh' },
+    { code: 'ja', name: '日本語 ja' },
+    { code: 'ko', name: '한국어 ko' },
+    { code: 'es', name: 'Español es' },
+    { code: 'fr', name: 'Français fr' },
+    { code: 'de', name: 'Deutsch de' },
+    { code: 'it', name: 'Italiano it' },
+    { code: 'pt', name: 'Português pt' },
+    { code: 'ru', name: 'Русский ru' },
+    { code: 'ar', name: 'العربية ar' },
+    
+    // 分隔線
+    { code: 'separator', name: '── 地區特定語系 ──', disabled: true },
+    
     // 中文變體
     { code: 'zh-Hant-TW', name: '繁體中文 zh-Hant-TW' },
     { code: 'zh-Hans-CN', name: '简体中文 zh-Hans-CN' },
@@ -61,7 +76,7 @@ const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
   ];
 
   const availableLanguages = languageOptions.filter(
-    lang => !existingLanguages.includes(lang.code)
+    lang => lang.code !== 'separator' && !existingLanguages.includes(lang.code)
   );
 
   const handleSubmit = (e) => {
@@ -92,11 +107,23 @@ const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
               disabled={loading}
             >
               <option value="">請選擇語系</option>
-              {availableLanguages.map(lang => (
-                <option key={lang.code} value={lang.code}>
-                  {lang.name}
-                </option>
-              ))}
+              {languageOptions.map(lang => {
+                if (lang.code === 'separator') {
+                  return (
+                    <option key={lang.code} disabled style={{ color: '#999', fontStyle: 'italic' }}>
+                      {lang.name}
+                    </option>
+                  );
+                }
+                if (existingLanguages.includes(lang.code)) {
+                  return null;
+                }
+                return (
+                  <option key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </option>
+                );
+              })}
             </select>
           </div>
 
