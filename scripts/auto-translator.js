@@ -516,6 +516,51 @@ class AutoTranslator {
     console.log(`📊 成功: ${successCount}, 失敗: ${failCount}, 修正: ${correctedCount}, 成功率: ${((successCount / (successCount + failCount)) * 100).toFixed(1)}%`);
   }
 
+  // 檢查是否為英文相關語系
+  isEnglishVariant(targetLang) {
+    const englishVariants = ['en', 'en-US', 'en-GB', 'en-AU', 'en-CA', 'en-NZ', 'en-IE', 'en-ZA', 'en-IN'];
+    return englishVariants.includes(targetLang);
+  }
+
+  // 直接複製 source 內容到英文語系
+  async copySourceToEnglish(targetLang) {
+    console.log(`🇺🇸 檢測到英文語系 ${targetLang}，直接複製 source 內容`);
+    
+    const files = fs.readdirSync(this.sourceDir).filter(file => file.endsWith('.json'));
+    console.log(`📄 找到 ${files.length} 個基底檔案: ${files.join(', ')}`);
+    
+    // 確保目標資料夾存在
+    const targetDir = path.join(this.baseDir, targetLang);
+    if (!fs.existsSync(targetDir)) {
+      fs.mkdirSync(targetDir, { recursive: true });
+    }
+    
+    const startTime = Date.now();
+    let copiedCount = 0;
+    
+    for (const file of files) {
+      const sourcePath = path.join(this.sourceDir, file);
+      const targetPath = path.join(targetDir, file);
+      
+      try {
+        // 直接複製檔案內容
+        const content = fs.readFileSync(sourcePath, 'utf8');
+        fs.writeFileSync(targetPath, content, 'utf8');
+        console.log(`✅ 複製完成: ${file}`);
+        copiedCount++;
+      } catch (error) {
+        console.error(`❌ 複製失敗 ${file}:`, error.message);
+      }
+    }
+    
+    const endTime = Date.now();
+    const duration = Math.round((endTime - startTime) / 1000);
+    
+    console.log(`\n🎉 英文語系 ${targetLang} 建立完成！`);
+    console.log(`📊 已複製 ${copiedCount}/${files.length} 個檔案`);
+    console.log(`⏱️  總耗時: ${duration} 秒（直接複製，無需翻譯）`);
+  }
+
   // 翻譯整個語言
   async translateLanguage(targetLang) {
     if (!fs.existsSync(this.sourceDir)) {
@@ -530,6 +575,13 @@ class AutoTranslator {
       return;
     }
 
+    // 檢查是否為英文相關語系
+    if (this.isEnglishVariant(targetLang)) {
+      await this.copySourceToEnglish(targetLang);
+      return;
+    }
+
+    // 非英文語系，進行正常翻譯
     console.log(`🌍 開始翻譯到 ${targetLang}`);
     console.log(`📁 找到 ${files.length} 個檔案`);
     console.log(`🔧 使用引擎: ${this.currentEngine}`);
