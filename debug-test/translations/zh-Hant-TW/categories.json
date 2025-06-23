@@ -1,0 +1,57 @@
+{
+  "categories": {
+    "heading": "類別",
+    "sortBy": "排序方式",
+    "sortType": {
+      "highToLow": "從高到低",
+      "lowToHight": "從低到高",
+      "relevance": "關聯"
+    },
+    "filters": "過濾器",
+    "numberOfProducts": "1 個產品 | {count} 個產品",
+    "emptyStateText": "我們不再有此類別的產品。",
+    "emptyStateText2": "還沒找到要找的內容嗎？",
+    "emptyStateAltText": "未找到產品的圖片",
+    "howToBuy": {
+      "label": "如何購買",
+      "subcategories": {
+        "paymentMethods": "付款方式",
+        "orderPickup": "訂單提貨",
+        "purchaseStatus": "購買狀態",
+        "trackOrders": "追蹤訂單",
+        "returns": "返��"
+      }
+    },
+    "help": {
+      "label": "幫助",
+      "subcategories": {
+        "helpCenter": "幫助中心",
+        "securityFraud": "安全與詐欺",
+        "feedback": "回饋",
+        "contact": "接觸"
+      }
+    },
+    "services": {
+      "label": "服務",
+      "subcategories": {
+        "giftCards": "禮品卡",
+        "storeLocator": "商店定位器",
+        "clickCollect": "點擊並收集",
+        "sameDayDelivery": "當日送達",
+        "shippingDelivery": "運輸和交付",
+        "couponsDiscounts": "優惠券和折扣",
+        "newsletter": "電子報"
+      }
+    },
+    "about": {
+      "label": "關於",
+      "subcategories": {
+        "aboutUs": "關於我們",
+        "jobs": "工作",
+        "pressCenter": "新聞中心",
+        "affiliateProgram": "聯盟計劃",
+        "suppliers": "供應商"
+      }
+    }
+  }
+}

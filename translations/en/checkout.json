@@ -1,0 +1,69 @@
+{
+  "checkout": {
+    "heading": "Checkout",
+    "enterInformation": "Enter Information",
+    "store": {
+      "heading": "Store",
+      "selectStore": "Select Store",
+      "reselectStore": "Reselect Store"
+    },
+    "shippingMethodAndAddress": {
+      "heading": "Shipping Method & Address",
+      "noCountry": "Please Select a Country First",
+      "noStore": "Please Select a Store",
+      "description": "Please Fill in the Shipping Methods & Address",
+      "newAddress": "New Shipping Address",
+      "saveInAddressBook": "Save In Address Book",
+      "edit": "Edit Shipping Method & Address",
+      "shippingFee": "Shipping Fee"
+    },
+    "billing": {
+      "heading": "Billing Address",
+      "description": "Please Fill in the Billing Address",
+      "addButton": "Add billing address",
+      "edit": "Edit Billing Address",
+      "sameAsShipping": "Same as Shipping Address",
+      "newAddress": "New Billing Address"
+    },
+    "country": {
+      "heading": "Country"
+    },
+    "payment": {
+      "heading": "Payment Method",
+      "description": "Please Choose the Payment Method",
+      "edit": "Choose a Payment Method",
+      "newCreditCard": "New Credit Card",
+      "chooseInstallationPeriods": "Choose Installation Periods",
+      "chooseCreditCard": "Choose Credit Card",
+      "creditCard": "Credit Card",
+      "instalment": "Instalment",
+      "saveCard": "Save Card",
+      "installmentDesc": "Split into {period} installment",
+      "checkCard": "Please check the Card information",
+      "paypalIconAlt": "Paypal Icon",
+      "applePayIconAlt": "Apple Pay Icon",
+      "googlePayIconAlt": "Google Pay icon",
+      "failed": "Payment failed"
+    },
+    "invoice": {
+      "heading": "E-invoice Information",
+      "description": "Please Choose the Invoice type",
+      "noPaymentMethod": "Please Select a Payment Method First",
+      "edit": "Choose a invoice type",
+      "citizenDigitalCertificateNumber": "Citizen Digital Certificate Number",
+      "mobileBarcodeNumber": "Mobile Barcode Number",
+      "taxId": "Tax ID Number",
+      "companyTitle": "Company Title",
+      "donateCode": "Donate Code",
+      "sendingPhysicalInvoice": "Sending physical invoice (Invoice sent to the billing address)",
+      "recommend": "Recommend"
+    },
+    "note": {
+      "heading": "Note"
+    },
+    "order": {
+      "heading": "Order Details",
+      "viewProducts": "View Products"
+    }
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "order": {
+    "heading": "",
+    "recentOrders": {
+      "heading": ""
+    },
+    "createStatus": {
+      "successHead": "",
+      "successMessage": "",
+      "failed": "",
+      "failedMessage": "",
+      "somethingWentWrongImageAlt": "",
+      "successfulImageAlt": ""
+    },
+    "viewAll": "",
+    "viewOrder": "",
+    "noOrders": "",
+    "showingOrders": "",
+    "id": "",
+    "number": "",
+    "date": "",
+    "delivery": "",
+    "status": "",
+    "paymentAmount": "",
+    "paymentAmountDetail": "",
+    "paymentMethod": "",
+    "recipient": {
+      "info": "",
+      "name": "",
+      "phone": ""
+    },
+    "deliveryDetails": "",
+    "invoice": {
+      "info": "",
+      "detail": "",
+      "amount": "",
+      "number": "",
+      "requestPhysical": "",
+      "yes": "",
+      "no": "",
+      "status": {
+        "heading": "",
+        "pending": "",
+        "issued": "",
+        "voided": ""
+      },
+      "type": "",
+      "type_1": "",
+      "type_2": "",
+      "type_3": "",
+      "type_4": "",
+      "carrier_type": "",
+      "personal_carrier": {
+        "member": "",
+        "mobile": "",
+        "cdc": "",
+        "barcode": "",
+        "cdc_number": ""
+      },
+      "company_carrier": {
+        "member": "",
+        "tax_id_number": "",
+        "title": ""
+      },
+      "physical": {
+        "tax_id_number": "",
+        "title": "",
+        "address": ""
+      },
+      "donate": {
+        "code": "",
+        "name": ""
+      },
+      "no_data": ""
+    },
+    "quantity": "",
+    "total": "",
+    "subtotal": "",
+    "discount": "",
+    "pointDiscount": "",
+    "shipping": "",
+    "shippingFree": "",
+    "orderItems": "",
+    "items": "",
+    "trackingInfo": "",
+    "comment": "",
+    "continueShopping": "",
+    "backToAccount": "",
+    "backToList": "",
+    "orderStatus": {
+      "Ordered": "",
+      "Pending": "",
+      "Processing": "",
+      "Shipped": "",
+      "Delivered": "",
+      "Cancelled": "",
+      "Payment Review": "",
+      "Pending Payment": "",
+      "Canceled": "",
+      "Complete": "",
+      "Refunded": "",
+      "Closed": ""
+    },
+    "action": {
+      "cancel": "",
+      "repay": "",
+      "buyAgain": "",
+      "requestRefund": ""
+    },
+    "shipment": {
+      "heading": "",
+      "ID": "",
+      "processing": "",
+      "status": {
+        "heading": "",
+        "unshipped": "",
+        "productPreparation": "",
+        "packingComplete": "",
+        "courierEnRoute": "",
+        "deliveryComplete": ""
+      }
+    },
+    "billing": {
+      "info": "",
+      "address": ""
+    },
+    "refund": {
+      "heading": "",
+      "ID": "",
+      "details": "",
+      "total": {
+        "subtotal": "",
+        "discounts": "",
+        "shipping": "",
+        "adjustment": "",
+        "grandTotal": ""
+      }
+    },
+    "expand": "",
+    "collapse": "",
+    "cancelOrderSuccessMessage": ""
+  }
+}

@@ -151,6 +151,31 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
     event.target.value = '';
   };
 
+  const handleSyncStructure = async () => {
+    if (!window.confirm('⚠️ 同步語系結構會根據基底檔案更新所有語系的檔案結構。\n\n這個操作會：\n• 添加缺失的檔案和翻譯鍵值\n• 保留現有的翻譯內容\n\n確定要繼續嗎？')) {
+      return;
+    }
+    
+    try {
+      toast.loading('🔄 正在同步語系結構...', { duration: 0 });
+      
+      const response = await axios.post('/api/translations/sync');
+      
+      toast.dismiss();
+      
+      if (response.data.success) {
+        const result = response.data.syncResult;
+        toast.success(`✅ 同步完成！\n語系處理：${result.languagesProcessed}\n新增檔案：${result.filesAdded}\n新增欄位：${result.fieldsAdded}`);
+        onLanguageUpdate();
+      } else {
+        toast.error('❌ 同步失敗：' + response.data.error);
+      }
+    } catch (error) {
+      toast.dismiss();
+      toast.error('❌ 同步失敗：' + (error.response?.data?.error || error.message));
+    }
+  };
+
 
 
   return (

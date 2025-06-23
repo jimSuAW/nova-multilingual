@@ -1,0 +1,69 @@
+{
+  "checkout": {
+    "heading": "",
+    "enterInformation": "",
+    "store": {
+      "heading": "",
+      "selectStore": "",
+      "reselectStore": ""
+    },
+    "shippingMethodAndAddress": {
+      "heading": "",
+      "noCountry": "",
+      "noStore": "",
+      "description": "",
+      "newAddress": "",
+      "saveInAddressBook": "",
+      "edit": "",
+      "shippingFee": ""
+    },
+    "billing": {
+      "heading": "",
+      "description": "",
+      "addButton": "",
+      "edit": "",
+      "sameAsShipping": "",
+      "newAddress": ""
+    },
+    "country": {
+      "heading": ""
+    },
+    "payment": {
+      "heading": "",
+      "description": "",
+      "edit": "",
+      "newCreditCard": "",
+      "chooseInstallationPeriods": "",
+      "chooseCreditCard": "",
+      "creditCard": "",
+      "instalment": "",
+      "saveCard": "",
+      "installmentDesc": "",
+      "checkCard": "",
+      "paypalIconAlt": "",
+      "applePayIconAlt": "",
+      "googlePayIconAlt": "",
+      "failed": ""
+    },
+    "invoice": {
+      "heading": "",
+      "description": "",
+      "noPaymentMethod": "",
+      "edit": "",
+      "citizenDigitalCertificateNumber": "",
+      "mobileBarcodeNumber": "",
+      "taxId": "",
+      "companyTitle": "",
+      "donateCode": "",
+      "sendingPhysicalInvoice": "",
+      "recommend": ""
+    },
+    "note": {
+      "heading": ""
+    },
+    "order": {
+      "heading": "",
+      "viewProducts": ""
+    }
+  }
+}

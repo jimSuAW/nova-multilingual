@@ -1,0 +1,8 @@
+{
+  "wishlist": {
+    "heading": "Wishlist",
+    "addSuccess": "Successfully added to your wishlist",
+    "removeSuccess": "Successfully removed from your wishlist",
+    "showingItems": "Showing {count} out of {total} items"
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "categories": {
+    "heading": "",
+    "sortBy": "",
+    "sortType": {
+      "highToLow": "",
+      "lowToHight": "",
+      "relevance": ""
+    },
+    "filters": "",
+    "numberOfProducts": "",
+    "emptyStateText": "",
+    "emptyStateText2": "",
+    "emptyStateAltText": "",
+    "howToBuy": {
+      "label": "",
+      "subcategories": {
+        "paymentMethods": "",
+        "orderPickup": "",
+        "purchaseStatus": "",
+        "trackOrders": "",
+        "returns": ""
+      }
+    },
+    "help": {
+      "label": "",
+      "subcategories": {
+        "helpCenter": "",
+        "securityFraud": "",
+        "feedback": "",
+        "contact": ""
+      }
+    },
+    "services": {
+      "label": "",
+      "subcategories": {
+        "giftCards": "",
+        "storeLocator": "",
+        "clickCollect": "",
+        "sameDayDelivery": "",
+        "shippingDelivery": "",
+        "couponsDiscounts": "",
+        "newsletter": ""
+      }
+    },
+    "about": {
+      "label": "",
+      "subcategories": {
+        "aboutUs": "",
+        "jobs": "",
+        "pressCenter": "",
+        "affiliateProgram": "",
+        "suppliers": ""
+      }
+    }
+  }
+}

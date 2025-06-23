@@ -1,5 +1,9 @@
-const fs = require('fs');
 const path = require('path');
+
+// 載入環境變數
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
+const fs = require('fs');
 const https = require('https');
 
 class AutoTranslator {

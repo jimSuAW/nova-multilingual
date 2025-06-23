@@ -1,0 +1,24 @@
+{
+  "cart": {
+    "heading": "包包",
+    "myCart": "我的包包",
+    "orderSummary": "訂單摘要",
+    "itemsInCart": "共 {count} 件商品",
+    "subtotalLabel": "小計",
+    "subtotalWithAmount": "小計：{amount}",
+    "savings": "儲蓄",
+    "checkout": "查看",
+    "viewCart": "查看購物車",
+    "goToCheckout": "前往結帳",
+    "savingsTag": "您今天的訂單節省了{amount}！",
+    "promoCodePlaceholder": "輸入優惠碼",
+    "promoCode": "促銷代碼",
+    "removePromoCode": "移除促銷代碼",
+    "emptyCart": "您的包包裡沒有物品",
+    "emptyCartImgAlt": "空袋子圖像",
+    "emptyCartDescription": "您的購物袋目前為空。請點擊下方按鈕開始購物。",
+    "itemOutOfStock": "您購物袋中的部分商品缺貨，請調整後再試",
+    "shopNow": "立即購買",
+    "quantity": "數量"
+  }
+}

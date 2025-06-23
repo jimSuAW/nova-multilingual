@@ -1,0 +1,24 @@
+{
+  "cart": {
+    "heading": "バッグ",
+    "myCart": "マイバッグ",
+    "orderSummary": "注文概要",
+    "itemsInCart": "合計 {count} 個のアイテム",
+    "subtotalLabel": "小計",
+    "subtotalWithAmount": "小計: {金額}",
+    "savings": "貯蓄",
+    "checkout": "チェックアウト",
+    "viewCart": "カートを見る",
+    "goToCheckout": "チェックアウトへ進む",
+    "savingsTag": "本日のご注文で {amount} 節約できます!",
+    "promoCodePlaceholder": "プロモーション���ードを入力してください",
+    "promoCode": "プロモーションコード",
+    "removePromoCode": "プロモーションコードを削除する",
+    "emptyCart": "バッグにアイテムがありません",
+    "emptyCartImgAlt": "空の袋の画像",
+    "emptyCartDescription": "バッグは現在空です。下のボタンをクリックしてショッピングを開始してください。",
+    "itemOutOfStock": "バッグ内の一部の商品は在庫切れです。調整してもう一度お試しください。",
+    "shopNow": "今すぐ購入",
+    "quantity": "量"
+  }
+}

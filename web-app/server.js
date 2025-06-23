@@ -1,6 +1,10 @@
+const path = require('path');
+
+// 載入環境變數
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 const fs = require('fs-extra');
 const bodyParser = require('body-parser');
 const { spawn } = require('child_process');
@@ -324,15 +328,27 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
       await fs.remove(tempExtractPath);
     }
     
-    // 解壓縮到臨時資料夾
+    // 使用系統 unzip 命令解壓縮（解決 Node.js unzipper 模組的相容性問題）
+    console.log('[Import] Extracting ZIP using system unzip command...');
     await new Promise((resolve, reject) => {
-      fs.createReadStream(zipPath)
-        .pipe(unzipper.Extract({ path: tempExtractPath }))
-        .on('close', () => {
+      const unzipProcess = spawn('unzip', ['-o', zipPath, '-d', tempExtractPath], {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+      
+      unzipProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log('[Import] System unzip completed successfully');
           // 添加延遲確保檔案系統同步完成
           setTimeout(resolve, 1000);
-        })
-        .on('error', reject);
+        } else {
+          reject(new Error(`Unzip failed with code ${code}`));
+        }
+      });
+      
+      unzipProcess.on('error', (error) => {
+        console.error('[Import] Unzip process error:', error);
+        reject(error);
+      });
     });
     
     console.log('[Import] Extraction completed, checking extracted files...');
@@ -421,21 +437,14 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
     await fs.remove(zipPath);
     
     console.log(`[Import] Import completed. ${actualImportedLanguages.length} languages imported, ${totalFilesImported} files total.`);
-    
-    // 執行結構同步以確保所有檔案都存在
-    let syncResult = null;
-    if (actualImportedLanguages.length > 0) {
-      console.log('[Import] Running structure sync after import...');
-      syncResult = await syncAllLanguagesWithSource();
-    }
+    console.log('[Import] Skipping auto-sync to preserve imported translation content.');
     
     res.json({ 
       success: true, 
       message: `匯入完成！已匯入 ${actualImportedLanguages.length} 個語系，共 ${totalFilesImported} 個檔案`,
       importedLanguages: actualImportedLanguages,
       totalFiles: totalFilesImported,
-      backup: backupPath,
-      syncResult: syncResult
+      backup: backupPath
     });
     
   } catch (error) {

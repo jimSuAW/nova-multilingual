@@ -1,0 +1,9 @@
+{
+  "storedCard": {
+    "heading": "已儲存的卡片",
+    "expiryDate": "到期日",
+    "delete": "刪除",
+    "deleteTitle": "刪除卡",
+    "confirmDeleteMessage": "您要刪除此卡資訊嗎？"
+  }
+}

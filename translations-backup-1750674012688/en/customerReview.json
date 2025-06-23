@@ -1,0 +1,11 @@
+{
+  "customerReview": {
+    "heading": "My Reviews",
+    "product": "Product:",
+    "summary": "Summary:",
+    "text": "Comment Content",
+    "showingReviews": "Showing {count} out of {total} reviews",
+    "expand": "Show More",
+    "collapse": "Show Less"
+  }
+}

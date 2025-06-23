@@ -1,0 +1,16 @@
+{
+  "address": {
+    "heading": "地址簿",
+    "add": "新增地址",
+    "edit": "編輯地址",
+    "deleteTitle": "刪除地址",
+    "defaultShipping": "預設送貨地址",
+    "defaultBilling": "預設帳單地址",
+    "setDefaultShipping": "設定為預設送貨地址",
+    "setDefaultBilling": "設定為預設帳單地址",
+    "confirmDeleteMessage": "您要刪除該地址嗎？",
+    "deleteSuccess": "地址刪除成功",
+    "recipient": "接受者",
+    "address": "地址"
+  }
+}
