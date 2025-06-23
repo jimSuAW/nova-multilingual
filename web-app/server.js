@@ -246,9 +246,8 @@ app.post('/api/languages/:language/translate', async (req, res) => {
   try {
     const { language } = req.params;
     
-    if (language === 'en') {
-      return res.status(400).json({ error: 'Cannot translate base language' });
-    }
+    // 移除舊的基底語系限制，允許翻譯 en 語系
+    // 基底語系是存放在 source 資料夾中，而不是 en 語系
     
     const langPath = path.join(TRANSLATIONS_DIR, language);
     if (!await fs.pathExists(langPath)) {
@@ -358,11 +357,8 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
         continue;
       }
       
-      // 🚨 重要：保護基底語系 en
-      if (lang === 'en') {
-        console.log(`[Import] ⚠️  跳過基底語系 'en'，不允許覆蓋`);
-        continue;
-      }
+      // 移除舊的基底語系保護，允許匯入 en 語系
+      // 真正的基底語系是 source 資料夾，而不是 en 語系
       
       console.log(`[Import] Processing language: ${lang}`);
       
@@ -386,13 +382,13 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
     await fs.remove(tempExtractPath);
     await fs.remove(zipPath);
     
-    const importedCount = importedLanguages.filter(lang => lang !== 'en').length;
+    const importedCount = importedLanguages.length;
     console.log(`[Import] Import completed successfully. Imported ${importedCount} languages.`);
     
     res.json({ 
       success: true, 
-      message: `匯入完成！已匯入 ${importedCount} 個語系（跳過基底語系 en）`,
-      importedLanguages: importedLanguages.filter(lang => lang !== 'en'),
+      message: `匯入完成！已匯入 ${importedCount} 個語系`,
+      importedLanguages: importedLanguages,
       backup: backupPath 
     });
     
