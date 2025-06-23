@@ -87,8 +87,8 @@ const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
   };
 
   return (
-    <div className="modal">
-      <div className="modal-content">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>新增語系</h2>
           <button className="modal-close" onClick={onClose}>
@@ -97,50 +97,44 @@ const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">選擇語系</label>
-            <select
-              className="form-input"
-              value={languageCode}
-              onChange={(e) => setLanguageCode(e.target.value)}
-              required
-              disabled={loading}
-            >
-              <option value="">請選擇語系</option>
-              {languageOptions.map(lang => {
-                if (lang.code === 'separator') {
+          <div className="modal-body">
+            <div className="form-group">
+              <label>選擇語系</label>
+                             <select
+                value={languageCode}
+                onChange={(e) => setLanguageCode(e.target.value)}
+                required
+                disabled={loading}
+              >
+                <option value="">請選擇語系</option>
+                {languageOptions.map(lang => {
+                  if (lang.code === 'separator') {
+                    return (
+                      <option key={lang.code} disabled style={{ color: '#999', fontStyle: 'italic' }}>
+                        {lang.name}
+                      </option>
+                    );
+                  }
+                  if (existingLanguages.includes(lang.code)) {
+                    return null;
+                  }
                   return (
-                    <option key={lang.code} disabled style={{ color: '#999', fontStyle: 'italic' }}>
+                    <option key={lang.code} value={lang.code}>
                       {lang.name}
                     </option>
                   );
-                }
-                if (existingLanguages.includes(lang.code)) {
-                  return null;
-                }
-                return (
-                  <option key={lang.code} value={lang.code}>
-                    {lang.name}
-                  </option>
-                );
-              })}
-            </select>
+                })}
+              </select>
+            </div>
+
+            {availableLanguages.length === 0 && (
+              <div className="text-muted">
+                所有支援的語系都已經創建了
+              </div>
+            )}
           </div>
 
-          {availableLanguages.length === 0 && (
-            <div className="text-muted mb-4">
-              所有支援的語系都已經創建了
-            </div>
-          )}
-
-          <div className="flex gap-2">
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={!languageCode || loading}
-            >
-              {loading ? '創建中...' : '創建語系'}
-            </button>
+          <div className="modal-footer">
             <button
               type="button"
               className="btn btn-secondary"
@@ -148,6 +142,13 @@ const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
               disabled={loading}
             >
               取消
+            </button>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={!languageCode || loading}
+            >
+              {loading ? '創建中...' : '創建語系'}
             </button>
           </div>
         </form>
