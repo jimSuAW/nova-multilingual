@@ -21,6 +21,7 @@ const upload = multer({ dest: 'uploads/' });
 
 // 翻譯文件路徑
 const TRANSLATIONS_DIR = path.join(__dirname, '..', 'translations');
+const SOURCE_DIR = path.join(__dirname, '..', 'source');
 
 // API 路由
 
@@ -46,7 +47,7 @@ app.get('/api/languages', async (req, res) => {
           code: lang,
           name: getLanguageName(lang),
           fileCount: jsonFiles.length,
-          isBase: lang === 'en'
+          isBase: false // 移除基底語系概念，所有 translations 中的都是翻譯
         });
       }
     }
@@ -145,14 +146,13 @@ app.post('/api/languages', async (req, res) => {
     await fs.ensureDir(targetPath);
     console.log(`[Language Creation] Successfully created directory: ${targetPath}`);
     
-    // 複製基準語系檔案結構
-    const basePath = path.join(TRANSLATIONS_DIR, 'en');
-    console.log(`[Language Creation] Copying from base path: ${basePath}`);
-    const baseFiles = await fs.readdir(basePath);
+    // 複製基底檔案結構
+    console.log(`[Language Creation] Copying from source path: ${SOURCE_DIR}`);
+    const baseFiles = await fs.readdir(SOURCE_DIR);
     const jsonFiles = baseFiles.filter(file => file.endsWith('.json'));
     
     for (const file of jsonFiles) {
-      const sourcePath = path.join(basePath, file);
+      const sourcePath = path.join(SOURCE_DIR, file);
       const targetFilePath = path.join(targetPath, file);
       
       if (await fs.pathExists(sourcePath)) {
@@ -175,10 +175,6 @@ app.post('/api/languages', async (req, res) => {
 app.delete('/api/languages/:language', async (req, res) => {
   try {
     const { language } = req.params;
-    
-    if (language === 'en') {
-      return res.status(400).json({ error: 'Cannot delete base language' });
-    }
 
     const langPath = path.join(TRANSLATIONS_DIR, language);
     if (await fs.pathExists(langPath)) {
@@ -415,6 +411,116 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
     
     res.status(500).json({ 
       error: 'Failed to import translations', 
+      details: error.message 
+    });
+  }
+});
+
+// 更新基底檔案（需要密碼保護）
+app.post('/api/source/update', upload.single('file'), async (req, res) => {
+  try {
+    const { password } = req.body;
+    
+    // 密碼驗證
+    if (password !== '24625602') {
+      return res.status(401).json({ error: '密碼錯誤' });
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    console.log('[Source Update] Starting source files update...');
+    
+    const zipPath = req.file.path;
+    const tempExtractPath = path.join(__dirname, 'temp-source-import');
+    const backupPath = `${SOURCE_DIR}-backup-${Date.now()}`;
+    
+    // 備份現有的 source 資料夾
+    if (await fs.pathExists(SOURCE_DIR)) {
+      console.log(`[Source Update] Backing up existing source to: ${backupPath}`);
+      await fs.copy(SOURCE_DIR, backupPath);
+    }
+    
+    // 清理臨時解壓縮資料夾
+    if (await fs.pathExists(tempExtractPath)) {
+      await fs.remove(tempExtractPath);
+    }
+    
+    // 解壓縮到臨時資料夾
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(zipPath)
+        .pipe(unzipper.Extract({ path: tempExtractPath }))
+        .on('close', resolve)
+        .on('error', reject);
+    });
+    
+    // 尋找解壓縮後的 source 資料夾或 JSON 檔案
+    let extractedSourcePath = path.join(tempExtractPath, 'source');
+    if (!await fs.pathExists(extractedSourcePath)) {
+      // 如果沒有 source 資料夾，檢查是否直接包含 JSON 檔案
+      const files = await fs.readdir(tempExtractPath);
+      const jsonFiles = files.filter(file => file.endsWith('.json'));
+      if (jsonFiles.length > 0) {
+        extractedSourcePath = tempExtractPath;
+      } else {
+        throw new Error('ZIP 檔案中找不到 source 資料夾或 JSON 檔案');
+      }
+    }
+    
+    // 驗證必要的 JSON 檔案
+    const files = await fs.readdir(extractedSourcePath);
+    const jsonFiles = files.filter(file => file.endsWith('.json'));
+    
+    if (jsonFiles.length === 0) {
+      throw new Error('ZIP 檔案中沒有找到 JSON 檔案');
+    }
+    
+    console.log(`[Source Update] Found ${jsonFiles.length} JSON files: ${jsonFiles.join(', ')}`);
+    
+    // 清空並重新建立 source 資料夾
+    if (await fs.pathExists(SOURCE_DIR)) {
+      await fs.remove(SOURCE_DIR);
+    }
+    await fs.ensureDir(SOURCE_DIR);
+    
+    // 複製所有 JSON 檔案到 source 資料夾
+    for (const file of jsonFiles) {
+      const sourceFilePath = path.join(extractedSourcePath, file);
+      const targetFilePath = path.join(SOURCE_DIR, file);
+      
+      console.log(`[Source Update] Copying: ${file}`);
+      await fs.copy(sourceFilePath, targetFilePath);
+    }
+    
+    // 清理臨時檔案
+    await fs.remove(tempExtractPath);
+    await fs.remove(zipPath);
+    
+    console.log(`[Source Update] Source update completed successfully. Updated ${jsonFiles.length} files.`);
+    
+    res.json({ 
+      success: true, 
+      message: `基底檔案更新完成！已更新 ${jsonFiles.length} 個檔案`,
+      updatedFiles: jsonFiles,
+      backup: backupPath 
+    });
+    
+  } catch (error) {
+    console.error('[Source Update] Update failed:', error);
+    
+    // 清理臨時檔案
+    if (req.file) {
+      await fs.remove(req.file.path).catch(() => {});
+    }
+    
+    const tempExtractPath = path.join(__dirname, 'temp-source-import');
+    if (await fs.pathExists(tempExtractPath)) {
+      await fs.remove(tempExtractPath).catch(() => {});
+    }
+    
+    res.status(500).json({ 
+      error: 'Failed to update source files', 
       details: error.message 
     });
   }

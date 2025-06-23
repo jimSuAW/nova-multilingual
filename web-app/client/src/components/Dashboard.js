@@ -17,6 +17,7 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
     averageCompletion: 0
   });
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showSourceModal, setShowSourceModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef(null);
 
@@ -221,6 +222,14 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
             <Globe size={16} />
             管理語系
           </Link>
+          
+          <button 
+            className="btn btn-warning"
+            onClick={() => setShowSourceModal(true)}
+            title="更新基底檔案（需要密碼）"
+          >
+            🔧 更新基底
+          </button>
         </div>
 
         {/* 語系卡片 */}
@@ -260,6 +269,13 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
           onAdd={handleAddLanguage}
           loading={loading}
           existingLanguages={languages.map(lang => lang.code)}
+        />
+      )}
+      
+      {/* 更新基底檔案模態框 */}
+      {showSourceModal && (
+        <UpdateSourceModal
+          onClose={() => setShowSourceModal(false)}
         />
       )}
     </div>
@@ -356,6 +372,134 @@ const LanguageCard = ({ language, onLanguageUpdate }) => {
         ) : (
           <div className="text-muted">載入中...</div>
         )}
+      </div>
+    </div>
+  );
+};
+
+// 更新基底檔案模態框組件
+const UpdateSourceModal = ({ onClose }) => {
+  const [password, setPassword] = useState('');
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!password) {
+      toast.error('請輸入密碼');
+      return;
+    }
+    
+    if (!file) {
+      toast.error('請選擇 ZIP 檔案');
+      return;
+    }
+    
+    if (!file.name.endsWith('.zip')) {
+      toast.error('請選擇 ZIP 檔案');
+      return;
+    }
+    
+    if (!window.confirm('⚠️ 這將會取代所有基底檔案！\n\n確定要繼續嗎？\n（原檔案會自動備份）')) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+      toast.loading('🔄 正在更新基底檔案...', { duration: 0 });
+      
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('password', password);
+      
+      const response = await axios.post('/api/source/update', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      
+      toast.dismiss();
+      toast.success(`✅ ${response.data.message}\n💾 舊檔案已備份`);
+      
+      onClose();
+    } catch (error) {
+      toast.dismiss();
+      if (error.response?.status === 401) {
+        toast.error('❌ 密碼錯誤');
+      } else {
+        toast.error('❌ 更新失敗：' + (error.response?.data?.error || error.message));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>🔧 更新基底檔案</h2>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            <div className="form-group">
+              <label>密碼 *</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="請輸入管理員密碼"
+                required
+                disabled={loading}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>ZIP 檔案 *</label>
+              <input
+                type="file"
+                accept=".zip"
+                onChange={(e) => setFile(e.target.files[0])}
+                required
+                disabled={loading}
+              />
+              <small className="form-help">
+                請上傳包含基底 JSON 檔案的 ZIP 壓縮檔
+              </small>
+            </div>
+            
+            <div className="warning-box">
+              <strong>⚠️ 重要提醒：</strong>
+              <ul>
+                <li>這將會取代所有基底檔案</li>
+                <li>原檔案會自動備份</li>
+                <li>請確保 ZIP 檔案包含正確的 JSON 結構</li>
+                <li>此操作需要管理員權限</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="modal-footer">
+            <button 
+              type="button" 
+              className="btn btn-secondary" 
+              onClick={onClose}
+              disabled={loading}
+            >
+              取消
+            </button>
+            <button 
+              type="submit" 
+              className="btn btn-warning"
+              disabled={loading}
+            >
+              {loading ? '更新中...' : '更新基底檔案'}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

@@ -3,9 +3,10 @@ const path = require('path');
 const https = require('https');
 
 class AutoTranslator {
-  constructor(baseDir = './translations') {
+  constructor(baseDir = './translations', sourceDir = './source') {
     this.baseDir = baseDir;
-    this.baseLanguage = 'en';
+    this.sourceDir = sourceDir;
+    this.baseLanguage = 'source';
     this.batchSize = 25; // GCP 支援批次翻譯
     this.maxConcurrent = 6; // 增加並行數
     this.delayMs = 30; // 更低延遲
@@ -392,10 +393,10 @@ class AutoTranslator {
 
   // 翻譯單個檔案
   async translateFile(filePath, targetLang) {
-    const fullPath = path.join(this.baseDir, this.baseLanguage, filePath);
+    const fullPath = path.join(this.sourceDir, filePath);
     
     if (!fs.existsSync(fullPath)) {
-      console.log(`❌ 檔案不存在: ${fullPath}`);
+      console.log(`❌ 基底檔案不存在: ${fullPath}`);
       return;
     }
 
@@ -517,14 +518,12 @@ class AutoTranslator {
 
   // 翻譯整個語言
   async translateLanguage(targetLang) {
-    const sourceDir = path.join(this.baseDir, this.baseLanguage);
-    
-    if (!fs.existsSync(sourceDir)) {
-      console.log(`❌ 來源目錄不存在: ${sourceDir}`);
+    if (!fs.existsSync(this.sourceDir)) {
+      console.log(`❌ 基底目錄不存在: ${this.sourceDir}`);
       return;
     }
 
-    const files = fs.readdirSync(sourceDir).filter(file => file.endsWith('.json'));
+    const files = fs.readdirSync(this.sourceDir).filter(file => file.endsWith('.json'));
     
     if (files.length === 0) {
       console.log('❌ 沒有找到 JSON 檔案');

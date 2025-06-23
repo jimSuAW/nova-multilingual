@@ -4,9 +4,10 @@ const archiver = require('archiver');
 const unzipper = require('unzipper');
 
 class TranslationManager {
-  constructor(baseDir = './translations') {
+  constructor(baseDir = './translations', sourceDir = './source') {
     this.baseDir = baseDir;
-    this.baseLanguage = 'en';
+    this.sourceDir = sourceDir;
+    this.baseLanguage = 'source';
   }
 
   // 創建新語系
@@ -20,10 +21,11 @@ class TranslationManager {
 
     fs.mkdirSync(targetDir, { recursive: true });
     
-    // 複製基準語系的結構
-    const sourceDir = path.join(this.baseDir, this.baseLanguage);
-    if (fs.existsSync(sourceDir)) {
-      this.copyStructure(sourceDir, targetDir);
+    // 複製基底檔案結構
+    if (fs.existsSync(this.sourceDir)) {
+      this.copyStructure(this.sourceDir, targetDir);
+    } else {
+      console.log(`⚠️  基底目錄不存在: ${this.sourceDir}`);
     }
     
     console.log(`✅ 語系 ${languageCode} 創建成功`);
