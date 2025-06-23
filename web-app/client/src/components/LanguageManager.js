@@ -62,7 +62,7 @@ const LanguageManager = ({ languages, onLanguageUpdate }) => {
   };
 
   const handleAutoTranslate = async (languageCode) => {
-    if (!window.confirm(`確定要對語系 ${languageCode} 執行自動翻譯嗎？\n\n🚀 優化功能：\n• 採用 Google Cloud Translation (95%+ 成功率)\n• 批次處理 + 並行翻譯\n• 速度提升 80%\n\n⏱️ 預計耗時：30-60 秒\n💡 提示：配置 Google Cloud API 可大幅提升翻譯品質`)) {
+    if (!window.confirm(`確定要對語系 ${languageCode} 執行自動翻譯嗎？會覆蓋掉原本已經翻譯好的內容\n⏱️ 預計耗時：5-60 秒，使用 Google Translate API 會大幅增加翻譯品質與加快速度`)) {
       return;
     }
 

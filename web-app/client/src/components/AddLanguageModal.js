@@ -7,6 +7,7 @@ const AddLanguageModal = ({ onClose, onAdd, loading, existingLanguages }) => {
   // 使用本地化名稱的語系代碼列表
   const languageOptions = [
     // 主流語系（無國家代碼）
+    { code: 'en', name: 'English en' },
     { code: 'zh', name: '中文 zh' },
     { code: 'ja', name: '日本語 ja' },
     { code: 'ko', name: '한국어 ko' },
