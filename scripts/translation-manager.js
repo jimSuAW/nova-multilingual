@@ -337,6 +337,154 @@ class TranslationManager {
     
     return stats;
   }
+
+  // 同步所有語系與基底檔案結構
+  syncAllLanguages() {
+    console.log('🔄 開始同步語系結構...');
+    
+    // 檢查 source 和 translations 目錄
+    if (!fs.existsSync(this.sourceDir)) {
+      console.error(`❌ 基底目錄不存在: ${this.sourceDir}`);
+      return false;
+    }
+    
+    if (!fs.existsSync(this.baseDir)) {
+      console.log('📁 translations 目錄不存在，跳過同步');
+      return true;
+    }
+    
+    // 獲取所有現有語系
+    const languages = fs.readdirSync(this.baseDir)
+      .filter(item => {
+        const itemPath = path.join(this.baseDir, item);
+        return fs.statSync(itemPath).isDirectory();
+      });
+    
+    if (languages.length === 0) {
+      console.log('📁 沒有找到語系目錄');
+      return true;
+    }
+    
+    console.log(`📂 發現 ${languages.length} 個語系: ${languages.join(', ')}`);
+    
+    // 獲取 source 中的所有 JSON 檔案
+    const sourceFiles = fs.readdirSync(this.sourceDir)
+      .filter(file => file.endsWith('.json'));
+    
+    console.log(`📄 發現 ${sourceFiles.length} 個基底檔案: ${sourceFiles.join(', ')}`);
+    
+    let syncStats = {
+      languagesProcessed: 0,
+      filesAdded: 0,
+      fieldsAdded: 0,
+      errors: []
+    };
+    
+    // 為每個語系同步結構
+    for (const lang of languages) {
+      try {
+        console.log(`🔄 處理語系: ${lang}`);
+        const langPath = path.join(this.baseDir, lang);
+        
+        // 處理每個 JSON 檔案
+        for (const file of sourceFiles) {
+          const sourceFilePath = path.join(this.sourceDir, file);
+          const targetFilePath = path.join(langPath, file);
+          
+          // 讀取基底檔案結構
+          const sourceContent = JSON.parse(fs.readFileSync(sourceFilePath, 'utf8'));
+          
+          // 檢查目標檔案是否存在
+          if (!fs.existsSync(targetFilePath)) {
+            // 檔案不存在，創建空的翻譯結構
+            console.log(`  📄 新增檔案: ${lang}/${file}`);
+            const emptyStructure = this.createEmptyStructure(sourceContent);
+            fs.writeFileSync(targetFilePath, JSON.stringify(emptyStructure, null, 2), 'utf8');
+            syncStats.filesAdded++;
+          } else {
+            // 檔案存在，同步結構
+            const targetContent = JSON.parse(fs.readFileSync(targetFilePath, 'utf8'));
+            const { updated, fieldsAdded } = this.syncStructure(sourceContent, targetContent);
+            
+            if (fieldsAdded > 0) {
+              console.log(`  🔄 更新結構: ${lang}/${file} (新增 ${fieldsAdded} 個欄位)`);
+              fs.writeFileSync(targetFilePath, JSON.stringify(updated, null, 2), 'utf8');
+              syncStats.fieldsAdded += fieldsAdded;
+            }
+          }
+        }
+        
+        syncStats.languagesProcessed++;
+      } catch (error) {
+        console.error(`❌ 處理語系 ${lang} 時發生錯誤:`, error.message);
+        syncStats.errors.push(`${lang}: ${error.message}`);
+      }
+    }
+    
+    console.log('✅ 語系結構同步完成');
+    console.log(`📊 統計:`);
+    console.log(`  - 處理語系: ${syncStats.languagesProcessed}`);
+    console.log(`  - 新增檔案: ${syncStats.filesAdded}`);
+    console.log(`  - 新增欄位: ${syncStats.fieldsAdded}`);
+    
+    if (syncStats.errors.length > 0) {
+      console.log(`⚠️  錯誤: ${syncStats.errors.join(', ')}`);
+    }
+    
+    return true;
+  }
+
+  // 同步單個結構（遞歸）
+  syncStructure(sourceObj, targetObj, path = '') {
+    let fieldsAdded = 0;
+    let updated = { ...targetObj };
+    
+    for (const [key, value] of Object.entries(sourceObj)) {
+      const currentPath = path ? `${path}.${key}` : key;
+      
+      if (!(key in updated)) {
+        // 新欄位，需要添加
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+          updated[key] = this.createEmptyStructure(value);
+          const subFields = this.countFields(value);
+          fieldsAdded += subFields;
+          console.log(`    ➕ 新增物件: ${currentPath} (${subFields} 個欄位)`);
+        } else {
+          updated[key] = '';
+          fieldsAdded++;
+          console.log(`    ➕ 新增欄位: ${currentPath}`);
+        }
+      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        // 遞歸處理嵌套對象
+        if (typeof updated[key] === 'object' && updated[key] !== null) {
+          const subResult = this.syncStructure(value, updated[key], currentPath);
+          updated[key] = subResult.updated;
+          fieldsAdded += subResult.fieldsAdded;
+        } else {
+          // 目標不是對象，需要重建
+          updated[key] = this.createEmptyStructure(value);
+          const subFields = this.countFields(value);
+          fieldsAdded += subFields;
+          console.log(`    🔄 重建物件: ${currentPath} (${subFields} 個欄位)`);
+        }
+      }
+    }
+    
+    return { updated, fieldsAdded };
+  }
+
+  // 計算對象中的欄位數量
+  countFields(obj) {
+    let count = 0;
+    for (const [key, value] of Object.entries(obj)) {
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        count += this.countFields(value);
+      } else {
+        count++;
+      }
+    }
+    return count;
+  }
 }
 
 // CLI 介面
@@ -355,11 +503,13 @@ async function main() {
   create <語系代碼>           創建新語系
   list                       列出所有語系
   stats                      顯示統計資訊
+  sync                       同步所有語系與基底檔案結構
   export [檔案路徑]           匯出 translations 資料夾為 ZIP
   import <ZIP檔案路徑>        匯入 ZIP 並取代 translations 資料夾
 
 範例:
   node scripts/translation-manager.js create zh-tw
+  node scripts/translation-manager.js sync
   node scripts/translation-manager.js export
   node scripts/translation-manager.js export ./backup/translations-20241201.zip
   node scripts/translation-manager.js import ./translations-backup.zip
@@ -391,6 +541,10 @@ async function main() {
         
       case 'stats':
         manager.showStats();
+        break;
+        
+      case 'sync':
+        manager.syncAllLanguages();
         break;
         
       case 'export':

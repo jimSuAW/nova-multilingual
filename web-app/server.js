@@ -416,6 +416,26 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
   }
 });
 
+// API: 手動同步語系結構
+app.post('/api/translations/sync', async (req, res) => {
+  try {
+    console.log('[API] Manual sync requested');
+    const syncResult = await syncAllLanguagesWithSource();
+    
+    res.json({
+      success: true,
+      message: '語系結構同步完成',
+      syncResult: syncResult
+    });
+  } catch (error) {
+    console.error('[API] Sync failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // 更新基底檔案（需要密碼保護）
 app.post('/api/source/update', upload.single('file'), async (req, res) => {
   try {
@@ -497,14 +517,18 @@ app.post('/api/source/update', upload.single('file'), async (req, res) => {
     await fs.remove(tempExtractPath);
     await fs.remove(zipPath);
     
-    console.log(`[Source Update] Source update completed successfully. Updated ${jsonFiles.length} files.`);
-    
-    res.json({ 
-      success: true, 
-      message: `基底檔案更新完成！已更新 ${jsonFiles.length} 個檔案`,
-      updatedFiles: jsonFiles,
-      backup: backupPath 
-    });
+         console.log(`[Source Update] Source update completed successfully. Updated ${jsonFiles.length} files.`);
+     
+     // 同步更新所有現有語系的結構
+     const syncResult = await syncAllLanguagesWithSource();
+     
+     res.json({ 
+       success: true, 
+       message: `基底檔案更新完成！已更新 ${jsonFiles.length} 個檔案`,
+       updatedFiles: jsonFiles,
+       backup: backupPath,
+       syncResult: syncResult
+     });
     
   } catch (error) {
     console.error('[Source Update] Update failed:', error);
@@ -539,6 +563,157 @@ app.use((err, req, res, next) => {
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'build', 'index.html'));
 });
+
+// 同步所有語系與基底檔案結構
+async function syncAllLanguagesWithSource() {
+  try {
+    console.log('[Sync] Starting language structure sync...');
+    
+    // 檢查 source 和 translations 目錄
+    if (!await fs.pathExists(SOURCE_DIR)) {
+      throw new Error('Source directory not found');
+    }
+    
+    if (!await fs.pathExists(TRANSLATIONS_DIR)) {
+      console.log('[Sync] No translations directory found, skipping sync');
+      return { message: 'No languages to sync' };
+    }
+    
+    // 獲取所有現有語系
+    const languages = await fs.readdir(TRANSLATIONS_DIR);
+    const languageDirs = [];
+    
+    for (const lang of languages) {
+      const langPath = path.join(TRANSLATIONS_DIR, lang);
+      const stats = await fs.stat(langPath);
+      if (stats.isDirectory()) {
+        languageDirs.push(lang);
+      }
+    }
+    
+    if (languageDirs.length === 0) {
+      console.log('[Sync] No language directories found');
+      return { message: 'No languages to sync' };
+    }
+    
+    console.log(`[Sync] Found ${languageDirs.length} languages: ${languageDirs.join(', ')}`);
+    
+    // 獲取 source 中的所有 JSON 檔案
+    const sourceFiles = await fs.readdir(SOURCE_DIR);
+    const jsonFiles = sourceFiles.filter(file => file.endsWith('.json'));
+    
+    console.log(`[Sync] Found ${jsonFiles.length} source files: ${jsonFiles.join(', ')}`);
+    
+    let syncStats = {
+      languagesProcessed: 0,
+      filesAdded: 0,
+      fieldsAdded: 0,
+      errors: []
+    };
+    
+    // 為每個語系同步結構
+    for (const lang of languageDirs) {
+      try {
+        console.log(`[Sync] Processing language: ${lang}`);
+        const langPath = path.join(TRANSLATIONS_DIR, lang);
+        
+        // 處理每個 JSON 檔案
+        for (const file of jsonFiles) {
+          const sourceFilePath = path.join(SOURCE_DIR, file);
+          const targetFilePath = path.join(langPath, file);
+          
+          // 讀取基底檔案結構
+          const sourceContent = await fs.readJson(sourceFilePath);
+          
+          // 檢查目標檔案是否存在
+          if (!await fs.pathExists(targetFilePath)) {
+            // 檔案不存在，創建空的翻譯結構
+            console.log(`[Sync] Adding new file: ${lang}/${file}`);
+            const emptyStructure = createTranslationTemplate(sourceContent);
+            await fs.writeJson(targetFilePath, emptyStructure, { spaces: 2 });
+            syncStats.filesAdded++;
+          } else {
+            // 檔案存在，同步結構
+            const targetContent = await fs.readJson(targetFilePath);
+            const { updated, fieldsAdded } = syncStructure(sourceContent, targetContent);
+            
+            if (fieldsAdded > 0) {
+              console.log(`[Sync] Updated structure: ${lang}/${file} (${fieldsAdded} fields added)`);
+              await fs.writeJson(targetFilePath, updated, { spaces: 2 });
+              syncStats.fieldsAdded += fieldsAdded;
+            }
+          }
+        }
+        
+        syncStats.languagesProcessed++;
+      } catch (error) {
+        console.error(`[Sync] Error processing language ${lang}:`, error);
+        syncStats.errors.push(`${lang}: ${error.message}`);
+      }
+    }
+    
+    console.log('[Sync] Language structure sync completed');
+    console.log(`[Sync] Stats:`, syncStats);
+    
+    return syncStats;
+    
+  } catch (error) {
+    console.error('[Sync] Sync failed:', error);
+    return { error: error.message };
+  }
+}
+
+// 同步單個結構（遞歸）
+function syncStructure(sourceObj, targetObj, path = '') {
+  let fieldsAdded = 0;
+  let updated = { ...targetObj };
+  
+  for (const [key, value] of Object.entries(sourceObj)) {
+    const currentPath = path ? `${path}.${key}` : key;
+    
+    if (!(key in updated)) {
+      // 新欄位，需要添加
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        updated[key] = createTranslationTemplate(value);
+        const subFields = countFields(value);
+        fieldsAdded += subFields;
+        console.log(`[Sync] Added new object: ${currentPath} (${subFields} fields)`);
+      } else {
+        updated[key] = '';
+        fieldsAdded++;
+        console.log(`[Sync] Added new field: ${currentPath}`);
+      }
+    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      // 遞歸處理嵌套對象
+      if (typeof updated[key] === 'object' && updated[key] !== null) {
+        const subResult = syncStructure(value, updated[key], currentPath);
+        updated[key] = subResult.updated;
+        fieldsAdded += subResult.fieldsAdded;
+      } else {
+        // 目標不是對象，需要重建
+        updated[key] = createTranslationTemplate(value);
+        const subFields = countFields(value);
+        fieldsAdded += subFields;
+        console.log(`[Sync] Rebuilt object: ${currentPath} (${subFields} fields)`);
+      }
+    }
+  }
+  
+  return { updated, fieldsAdded };
+}
+
+// 計算對象中的欄位數量
+function countFields(obj) {
+  let count = 0;
+  for (const [key, value] of Object.entries(obj)) {
+    if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      count += countFields(value);
+    } else {
+      count++;
+    }
+  }
+  return count;
+}
 
 // 輔助函數
 function getLanguageName(code) {

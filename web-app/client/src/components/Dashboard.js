@@ -151,6 +151,8 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
     event.target.value = '';
   };
 
+
+
   return (
     <div>
       <Navbar />
@@ -420,7 +422,31 @@ const UpdateSourceModal = ({ onClose }) => {
       });
       
       toast.dismiss();
-      toast.success(`✅ ${response.data.message}\n💾 舊檔案已備份`);
+      
+      let message = `✅ ${response.data.message}\n💾 舊檔案已備份`;
+      
+      // 顯示同步結果
+      if (response.data.syncResult) {
+        const sync = response.data.syncResult;
+        if (sync.error) {
+          message += `\n⚠️ 同步警告: ${sync.error}`;
+        } else if (sync.message) {
+          message += `\n📋 ${sync.message}`;
+        } else {
+          message += `\n🔄 語系同步完成: 處理了 ${sync.languagesProcessed} 個語系`;
+          if (sync.filesAdded > 0) {
+            message += `，新增 ${sync.filesAdded} 個檔案`;
+          }
+          if (sync.fieldsAdded > 0) {
+            message += `，新增 ${sync.fieldsAdded} 個欄位`;
+          }
+          if (sync.errors && sync.errors.length > 0) {
+            message += `\n⚠️ 部分語系同步失敗: ${sync.errors.join(', ')}`;
+          }
+        }
+      }
+      
+      toast.success(message);
       
       onClose();
     } catch (error) {
