@@ -345,7 +345,10 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
     // 確保 translations 資料夾存在
     await fs.ensureDir(TRANSLATIONS_DIR);
     
-    // 合併每個語系（跳過 en 基底語系）
+    // 合併每個語系
+    let actualImportedLanguages = [];
+    let totalFilesImported = 0;
+    
     for (const lang of importedLanguages) {
       const sourceLangPath = path.join(extractedTranslationsPath, lang);
       const targetLangPath = path.join(TRANSLATIONS_DIR, lang);
@@ -357,9 +360,6 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
         continue;
       }
       
-      // 移除舊的基底語系保護，允許匯入 en 語系
-      // 真正的基底語系是 source 資料夾，而不是 en 語系
-      
       console.log(`[Import] Processing language: ${lang}`);
       
       // 確保目標語系資料夾存在
@@ -369,12 +369,28 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
       const files = await fs.readdir(sourceLangPath);
       const jsonFiles = files.filter(file => file.endsWith('.json'));
       
+      console.log(`[Import] Found ${jsonFiles.length} JSON files in ${lang}: ${jsonFiles.join(', ')}`);
+      
+      let filesImportedForLang = 0;
       for (const file of jsonFiles) {
         const sourceFilePath = path.join(sourceLangPath, file);
         const targetFilePath = path.join(targetLangPath, file);
         
-        console.log(`[Import] Copying: ${lang}/${file}`);
-        await fs.copy(sourceFilePath, targetFilePath);
+        try {
+          console.log(`[Import] Copying: ${lang}/${file}`);
+          await fs.copy(sourceFilePath, targetFilePath);
+          filesImportedForLang++;
+          totalFilesImported++;
+        } catch (error) {
+          console.error(`[Import] Failed to copy ${lang}/${file}:`, error);
+        }
+      }
+      
+      if (filesImportedForLang > 0) {
+        actualImportedLanguages.push(lang);
+        console.log(`[Import] Successfully imported ${filesImportedForLang} files for language: ${lang}`);
+      } else {
+        console.log(`[Import] No files imported for language: ${lang}`);
       }
     }
     
@@ -382,14 +398,22 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
     await fs.remove(tempExtractPath);
     await fs.remove(zipPath);
     
-    const importedCount = importedLanguages.length;
-    console.log(`[Import] Import completed successfully. Imported ${importedCount} languages.`);
+    console.log(`[Import] Import completed. ${actualImportedLanguages.length} languages imported, ${totalFilesImported} files total.`);
+    
+    // 執行結構同步以確保所有檔案都存在
+    let syncResult = null;
+    if (actualImportedLanguages.length > 0) {
+      console.log('[Import] Running structure sync after import...');
+      syncResult = await syncAllLanguagesWithSource();
+    }
     
     res.json({ 
       success: true, 
-      message: `匯入完成！已匯入 ${importedCount} 個語系`,
-      importedLanguages: importedLanguages,
-      backup: backupPath 
+      message: `匯入完成！已匯入 ${actualImportedLanguages.length} 個語系，共 ${totalFilesImported} 個檔案`,
+      importedLanguages: actualImportedLanguages,
+      totalFiles: totalFilesImported,
+      backup: backupPath,
+      syncResult: syncResult
     });
     
   } catch (error) {
