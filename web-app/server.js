@@ -328,13 +328,21 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
     await new Promise((resolve, reject) => {
       fs.createReadStream(zipPath)
         .pipe(unzipper.Extract({ path: tempExtractPath }))
-        .on('close', resolve)
+        .on('close', () => {
+          // 添加延遲確保檔案系統同步完成
+          setTimeout(resolve, 1000);
+        })
         .on('error', reject);
     });
+    
+    console.log('[Import] Extraction completed, checking extracted files...');
     
     // 尋找解壓縮後的 translations 資料夾
     const extractedTranslationsPath = path.join(tempExtractPath, 'translations');
     if (!await fs.pathExists(extractedTranslationsPath)) {
+      // 列出解壓縮目錄內容以便除錯
+      const extractedContents = await fs.readdir(tempExtractPath);
+      console.log(`[Import] Extracted contents: ${extractedContents.join(', ')}`);
       throw new Error('ZIP 檔案中找不到 translations 資料夾');
     }
     
@@ -367,8 +375,9 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
       
       // 複製所有 JSON 檔案
       const files = await fs.readdir(sourceLangPath);
-      const jsonFiles = files.filter(file => file.endsWith('.json'));
+      console.log(`[Import] All files in ${lang}: ${files.join(', ')}`);
       
+      const jsonFiles = files.filter(file => file.endsWith('.json'));
       console.log(`[Import] Found ${jsonFiles.length} JSON files in ${lang}: ${jsonFiles.join(', ')}`);
       
       let filesImportedForLang = 0;
@@ -377,10 +386,23 @@ app.post('/api/translations/import', upload.single('file'), async (req, res) => 
         const targetFilePath = path.join(targetLangPath, file);
         
         try {
+          // 檢查源檔案是否存在
+          if (!await fs.pathExists(sourceFilePath)) {
+            console.error(`[Import] Source file does not exist: ${sourceFilePath}`);
+            continue;
+          }
+          
           console.log(`[Import] Copying: ${lang}/${file}`);
           await fs.copy(sourceFilePath, targetFilePath);
-          filesImportedForLang++;
-          totalFilesImported++;
+          
+          // 驗證複製是否成功
+          if (await fs.pathExists(targetFilePath)) {
+            filesImportedForLang++;
+            totalFilesImported++;
+            console.log(`[Import] Successfully copied: ${lang}/${file}`);
+          } else {
+            console.error(`[Import] Copy failed - target file not found: ${targetFilePath}`);
+          }
         } catch (error) {
           console.error(`[Import] Failed to copy ${lang}/${file}:`, error);
         }
@@ -655,12 +677,18 @@ async function syncAllLanguagesWithSource() {
           } else {
             // 檔案存在，同步結構
             const targetContent = await fs.readJson(targetFilePath);
+            console.log(`[Sync] Before sync ${lang}/${file}: ${JSON.stringify(targetContent).substring(0, 100)}...`);
+            
             const { updated, fieldsAdded } = syncStructure(sourceContent, targetContent);
+            
+            console.log(`[Sync] After sync ${lang}/${file}: ${JSON.stringify(updated).substring(0, 100)}...`);
             
             if (fieldsAdded > 0) {
               console.log(`[Sync] Updated structure: ${lang}/${file} (${fieldsAdded} fields added)`);
               await fs.writeJson(targetFilePath, updated, { spaces: 2 });
               syncStats.fieldsAdded += fieldsAdded;
+            } else {
+              console.log(`[Sync] No changes needed for: ${lang}/${file}`);
             }
           }
         }
@@ -710,13 +738,25 @@ function syncStructure(sourceObj, targetObj, path = '') {
         updated[key] = subResult.updated;
         fieldsAdded += subResult.fieldsAdded;
       } else {
-        // 目標不是對象，需要重建
-        updated[key] = createTranslationTemplate(value);
+        // 目標不是對象，但保留現有值並添加缺失的嵌套欄位
+        console.log(`[Sync] Warning: ${currentPath} should be an object but is currently: ${typeof updated[key]}`);
+        
+        // 創建新的對象結構，但嘗試保留任何可能的值
+        const newStructure = createTranslationTemplate(value);
+        
+        // 如果現有值是字串且不為空，將其保存到 _originalValue 中以便恢復
+        if (typeof updated[key] === 'string' && updated[key].trim() !== '') {
+          console.log(`[Sync] Preserving original value for ${currentPath}: ${updated[key]}`);
+          newStructure._originalValue = updated[key];
+        }
+        
+        updated[key] = newStructure;
         const subFields = countFields(value);
         fieldsAdded += subFields;
-        console.log(`[Sync] Rebuilt object: ${currentPath} (${subFields} fields)`);
+        console.log(`[Sync] Rebuilt object: ${currentPath} (${subFields} fields, preserved original value)`);
       }
     }
+    // 如果是基本類型，不做任何處理，保持現有翻譯
   }
   
   return { updated, fieldsAdded };
