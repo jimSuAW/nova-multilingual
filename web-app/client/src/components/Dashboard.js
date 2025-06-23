@@ -250,8 +250,7 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
             <div className="empty-state-icon">Globe</div>
             <h2 className="empty-state-title">🌍 尚未建立任何語系</h2>
             <p className="empty-state-description">
-              基底語系 (en) 已準備就緒！<br/>
-              請新增您要翻譯的目標語系開始管理翻譯
+              請新增您要翻譯的語系
             </p>
             <button 
               className="btn btn-primary"
