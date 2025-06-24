@@ -1,8 +1,0 @@
-{
-  "wishlist": {
-    "heading": "願望清單",
-    "addSuccess": "已成功加入您的願望清單",
-    "removeSuccess": "已成功從您的願望清單中移除",
-    "showingItems": "顯示 {count} 個（共 {total} 個）"
-  }
-}
