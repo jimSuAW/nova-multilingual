@@ -46,7 +46,9 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
       }
     }
     
-    const averageCompletion = validLanguages > 0 ? Math.round(totalCompletion / validLanguages) : 0;
+    // 修正平均完成度計算：使用更精確的計算
+    const averageCompletion = validLanguages > 0 ? 
+      Math.round((totalCompletion / validLanguages) * 10) / 10 : 0;
     
     setStats({
       totalLanguages,

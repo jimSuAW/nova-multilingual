@@ -281,7 +281,9 @@ class TranslationManager {
           translatedItems += stats.translated;
         });
         
-        const completeness = totalItems > 0 ? ((translatedItems / totalItems) * 100).toFixed(1) : 0;
+        // 修正百分比計算：確保完整翻譯時顯示100%
+        const completeness = totalItems > 0 ? 
+          Math.round(((translatedItems / totalItems) * 100) * 10) / 10 : 0;
         console.log(`📝 翻譯項目: ${translatedItems}/${totalItems}`);
         console.log(`✅ 完成度: ${completeness}%`);
       }

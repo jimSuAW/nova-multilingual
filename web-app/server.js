@@ -230,7 +230,9 @@ app.get('/api/languages/:language/stats', async (req, res) => {
       emptyKeys += stats.empty;
     }
 
-    const percentage = totalKeys > 0 ? Math.round((translatedKeys / totalKeys) * 100) : 0;
+    // 修正百分比計算：使用精確的百分比計算，避免進位問題
+    const percentage = totalKeys > 0 ? 
+      Math.round(((translatedKeys / totalKeys) * 100) * 10) / 10 : 0;
 
     res.json({
       total: totalKeys,
@@ -973,19 +975,9 @@ async function getTranslationStats(obj, baseObj = null) {
         if (value === '' || value === null || value === undefined) {
           empty++;
         } else {
-          // 如果沒有基準語系（即本身就是基準語系），直接計算非空值
-          if (!baseObj) {
-            translated++;
-          } else {
-            // 檢查是否與基準語系相同（英文）
-            const baseValue = baseObj && baseObj[key];
-            if (baseValue && value === baseValue) {
-              // 如果與基準語系相同，不算已翻譯
-              empty++;
-            } else {
-              translated++;
-            }
-          }
+          // 修正邏輯：只要有內容就算已翻譯，不管是否與基準語系相同
+          // 因為與基準語系相同的翻譯仍然是有效的翻譯（如專有名詞、品牌名稱等）
+          translated++;
         }
       }
     }
