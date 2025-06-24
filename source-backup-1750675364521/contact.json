@@ -1,0 +1,37 @@
+{
+  "contact": {
+    "info": {
+      "heading": "Contact Information",
+      "description": "Add your email and phone number to communicate with the store.",
+      "add": "Add contact information",
+      "email": "Email",
+      "phone": "Phone number",
+      "phonePlaceholder": "eg. 123 456 7890",
+      "cancel": "Cancel",
+      "save": "Save",
+      "edit": "Edit"
+    },
+    "options": {
+      "helpCenter": {
+        "label": "Help center",
+        "details": {
+          "description": "Find answers online anytime"
+        }
+      },
+      "liveChat": {
+        "label": "Live chat",
+        "details": {
+          "openingHours-1": "Mon–Fri, 5am–10pm PT",
+          "openingHours-2": "Sat–Sun, 6am–9pm PT"
+        }
+      },
+      "phone": {
+        "label": "1 234 567 8901",
+        "details": {
+          "openingHours-1": "Mon–Fri, 5am–10pm PT",
+          "openingHours-2": "Sat–Sun, 6am–9pm PT"
+        }
+      }
+    }
+  }
+}

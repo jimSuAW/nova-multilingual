@@ -518,12 +518,27 @@ app.post('/api/source/update', upload.single('file'), async (req, res) => {
       await fs.remove(tempExtractPath);
     }
     
-    // 解壓縮到臨時資料夾
+    // 使用系統 unzip 命令解壓縮（解決 Node.js unzipper 模組的相容性問題）
+    console.log('[Source Update] Extracting ZIP using system unzip command...');
     await new Promise((resolve, reject) => {
-      fs.createReadStream(zipPath)
-        .pipe(unzipper.Extract({ path: tempExtractPath }))
-        .on('close', resolve)
-        .on('error', reject);
+      const unzipProcess = spawn('unzip', ['-o', zipPath, '-d', tempExtractPath], {
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+      
+      unzipProcess.on('close', (code) => {
+        if (code === 0) {
+          console.log('[Source Update] System unzip completed successfully');
+          // 添加延遲確保檔案系統同步完成
+          setTimeout(resolve, 1000);
+        } else {
+          reject(new Error(`Unzip failed with code ${code}`));
+        }
+      });
+      
+      unzipProcess.on('error', (error) => {
+        console.error('[Source Update] Unzip process error:', error);
+        reject(error);
+      });
     });
     
     // 尋找解壓縮後的 source 資料夾或 JSON 檔案
@@ -658,7 +673,9 @@ async function syncAllLanguagesWithSource() {
     let syncStats = {
       languagesProcessed: 0,
       filesAdded: 0,
+      filesRemoved: 0,
       fieldsAdded: 0,
+      fieldsRemoved: 0,
       errors: []
     };
     
@@ -668,7 +685,7 @@ async function syncAllLanguagesWithSource() {
         console.log(`[Sync] Processing language: ${lang}`);
         const langPath = path.join(TRANSLATIONS_DIR, lang);
         
-        // 處理每個 JSON 檔案
+        // 1. 先處理新增和更新的檔案
         for (const file of jsonFiles) {
           const sourceFilePath = path.join(SOURCE_DIR, file);
           const targetFilePath = path.join(langPath, file);
@@ -688,17 +705,31 @@ async function syncAllLanguagesWithSource() {
             const targetContent = await fs.readJson(targetFilePath);
             console.log(`[Sync] Before sync ${lang}/${file}: ${JSON.stringify(targetContent).substring(0, 100)}...`);
             
-            const { updated, fieldsAdded } = syncStructure(sourceContent, targetContent);
+            const { updated, fieldsAdded, fieldsRemoved } = syncStructure(sourceContent, targetContent);
             
             console.log(`[Sync] After sync ${lang}/${file}: ${JSON.stringify(updated).substring(0, 100)}...`);
             
-            if (fieldsAdded > 0) {
-              console.log(`[Sync] Updated structure: ${lang}/${file} (${fieldsAdded} fields added)`);
+            if (fieldsAdded > 0 || fieldsRemoved > 0) {
+              console.log(`[Sync] Updated structure: ${lang}/${file} (+${fieldsAdded} fields, -${fieldsRemoved} fields)`);
               await fs.writeJson(targetFilePath, updated, { spaces: 2 });
               syncStats.fieldsAdded += fieldsAdded;
+              syncStats.fieldsRemoved += fieldsRemoved;
             } else {
               console.log(`[Sync] No changes needed for: ${lang}/${file}`);
             }
+          }
+        }
+        
+        // 2. 刪除不再存在於 source 中的檔案
+        const existingFiles = await fs.readdir(langPath);
+        const existingJsonFiles = existingFiles.filter(file => file.endsWith('.json'));
+        
+        for (const file of existingJsonFiles) {
+          if (!jsonFiles.includes(file)) {
+            const targetFilePath = path.join(langPath, file);
+            console.log(`[Sync] Removing obsolete file: ${lang}/${file}`);
+            await fs.remove(targetFilePath);
+            syncStats.filesRemoved++;
           }
         }
         
@@ -723,12 +754,14 @@ async function syncAllLanguagesWithSource() {
 // 同步單個結構（遞歸）
 function syncStructure(sourceObj, targetObj, path = '') {
   let fieldsAdded = 0;
-  let updated = { ...targetObj };
+  let fieldsRemoved = 0;
+  let updated = {};
   
+  // 1. 處理 source 中存在的欄位（新增和更新）
   for (const [key, value] of Object.entries(sourceObj)) {
     const currentPath = path ? `${path}.${key}` : key;
     
-    if (!(key in updated)) {
+    if (!(key in targetObj)) {
       // 新欄位，需要添加
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         updated[key] = createTranslationTemplate(value);
@@ -742,21 +775,22 @@ function syncStructure(sourceObj, targetObj, path = '') {
       }
     } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
       // 遞歸處理嵌套對象
-      if (typeof updated[key] === 'object' && updated[key] !== null) {
-        const subResult = syncStructure(value, updated[key], currentPath);
+      if (typeof targetObj[key] === 'object' && targetObj[key] !== null) {
+        const subResult = syncStructure(value, targetObj[key], currentPath);
         updated[key] = subResult.updated;
         fieldsAdded += subResult.fieldsAdded;
+        fieldsRemoved += subResult.fieldsRemoved;
       } else {
         // 目標不是對象，但保留現有值並添加缺失的嵌套欄位
-        console.log(`[Sync] Warning: ${currentPath} should be an object but is currently: ${typeof updated[key]}`);
+        console.log(`[Sync] Warning: ${currentPath} should be an object but is currently: ${typeof targetObj[key]}`);
         
         // 創建新的對象結構，但嘗試保留任何可能的值
         const newStructure = createTranslationTemplate(value);
         
         // 如果現有值是字串且不為空，將其保存到 _originalValue 中以便恢復
-        if (typeof updated[key] === 'string' && updated[key].trim() !== '') {
-          console.log(`[Sync] Preserving original value for ${currentPath}: ${updated[key]}`);
-          newStructure._originalValue = updated[key];
+        if (typeof targetObj[key] === 'string' && targetObj[key].trim() !== '') {
+          console.log(`[Sync] Preserving original value for ${currentPath}: ${targetObj[key]}`);
+          newStructure._originalValue = targetObj[key];
         }
         
         updated[key] = newStructure;
@@ -764,11 +798,28 @@ function syncStructure(sourceObj, targetObj, path = '') {
         fieldsAdded += subFields;
         console.log(`[Sync] Rebuilt object: ${currentPath} (${subFields} fields, preserved original value)`);
       }
+    } else {
+      // 基本類型，保持現有翻譯
+      updated[key] = targetObj[key];
     }
-    // 如果是基本類型，不做任何處理，保持現有翻譯
   }
   
-  return { updated, fieldsAdded };
+  // 2. 計算被刪除的欄位數量（在 target 中存在但 source 中不存在的欄位）
+  for (const [key, value] of Object.entries(targetObj)) {
+    if (!(key in sourceObj)) {
+      const currentPath = path ? `${path}.${key}` : key;
+      if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+        const subFields = countFields(value);
+        fieldsRemoved += subFields;
+        console.log(`[Sync] Removed obsolete object: ${currentPath} (${subFields} fields)`);
+      } else {
+        fieldsRemoved++;
+        console.log(`[Sync] Removed obsolete field: ${currentPath}`);
+      }
+    }
+  }
+  
+  return { updated, fieldsAdded, fieldsRemoved };
 }
 
 // 計算對象中的欄位數量

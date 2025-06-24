@@ -67,7 +67,7 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
       toast.success(`語系 ${languageCode} 創建成功！`);
       
       setShowAddModal(false);
-      onLanguageUpdate();
+      window.location.reload(); // 直接重新整理頁面
     } catch (error) {
       toast.dismiss();
       toast.error(error.response?.data?.error || '創建語系失敗');
@@ -134,8 +134,8 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
       toast.dismiss();
       toast.success(`✅ 翻譯資料匯入成功！\n💾 舊資料已備份`);
       
-      // 重新載入頁面以更新語系列表
-      onLanguageUpdate();
+      // 重新載入頁面
+      window.location.reload();
     } catch (error) {
       toast.dismiss();
       toast.error('❌ 匯入失敗：' + (error.response?.data?.error || error.message));
@@ -166,7 +166,7 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
       if (response.data.success) {
         const result = response.data.syncResult;
         toast.success(`✅ 同步完成！\n語系處理：${result.languagesProcessed}\n新增檔案：${result.filesAdded}\n新增欄位：${result.fieldsAdded}`);
-        onLanguageUpdate();
+        window.location.reload(); // 直接重新整理頁面
       } else {
         toast.error('❌ 同步失敗：' + response.data.error);
       }
@@ -175,8 +175,6 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
       toast.error('❌ 同步失敗：' + (error.response?.data?.error || error.message));
     }
   };
-
-
 
   return (
     <div>
@@ -302,6 +300,10 @@ const Dashboard = ({ languages, onLanguageUpdate }) => {
       {showSourceModal && (
         <UpdateSourceModal
           onClose={() => setShowSourceModal(false)}
+          onSuccess={() => {
+            setShowSourceModal(false);
+            window.location.reload(); // 直接重新整理頁面
+          }}
         />
       )}
     </div>
@@ -358,7 +360,7 @@ const LanguageCard = ({ language, onLanguageUpdate }) => {
         ) : stats ? (
           <>
             <div className="language-stats">
-              <span>文件: {language.fileCount}</span>
+              <span>文件: {stats.files || language.fileCount}</span>
               <span>鍵值: {stats.total}</span>
             </div>
             
@@ -404,7 +406,7 @@ const LanguageCard = ({ language, onLanguageUpdate }) => {
 };
 
 // 更新基底檔案模態框組件
-const UpdateSourceModal = ({ onClose }) => {
+const UpdateSourceModal = ({ onClose, onSuccess }) => {
   const [password, setPassword] = useState('');
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -464,6 +466,12 @@ const UpdateSourceModal = ({ onClose }) => {
           if (sync.fieldsAdded > 0) {
             message += `，新增 ${sync.fieldsAdded} 個欄位`;
           }
+          if (sync.filesRemoved > 0) {
+            message += `，刪除 ${sync.filesRemoved} 個檔案`;
+          }
+          if (sync.fieldsRemoved > 0) {
+            message += `，刪除 ${sync.fieldsRemoved} 個欄位`;
+          }
           if (sync.errors && sync.errors.length > 0) {
             message += `\n⚠️ 部分語系同步失敗: ${sync.errors.join(', ')}`;
           }
@@ -472,7 +480,12 @@ const UpdateSourceModal = ({ onClose }) => {
       
       toast.success(message);
       
-      onClose();
+      // 呼叫成功回調來刷新數據
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        onClose();
+      }
     } catch (error) {
       toast.dismiss();
       if (error.response?.status === 401) {

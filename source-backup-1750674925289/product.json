@@ -1,0 +1,42 @@
+{
+  "product": {
+    "startingAt": "From",
+    "outOfStock": "Out of stock",
+    "customerReviews": "Customer Reviews",
+    "sku": "SKU",
+    "showingProducts": "showing {count} out of {total} products",
+    "selectStyle": "Select a style",
+    "customize": "Customize",
+    "selectBundle": "Select the product to bundle",
+    "bundledProductItem": "Selected Product Content",
+    "bundledProductQuantity": "Bundled Product Quantity",
+    "quantity": "Quantity",
+    "buyMoreSaveMore": "Buy More, Save More",
+    "buyMoreSaveMoreDiscountPrice": "Buy {quantity} for {price} each",
+    "buyMoreSaveMoreDiscountPercent": "Buy {quantity} with {percent} discount each",
+    "addToCartSuccessMessage": "{productName} has been added to cart",
+    "createReviewSuccess": "Your review has been submitted",
+    "section": {
+      "showDescription": "Show Product Description",
+      "hideDescription": "Hide Product Description",
+      "productDescription": "Product Description",
+      "reviews": "Reviews",
+      "moreReviews": "More Reviews",
+      "noReviews": "No reviews yet",
+      "moreRecommendations": "More Recommendations",
+      "relatedProducts": "Related Products",
+      "upsellProducts": "Upsell Products",
+      "crosssellProduct": "More Products",
+      "showMore": "Show More",
+      "showLess": "Show Less"
+    },
+    "reviewForm": {
+      "header": "Submit a review",
+      "yourRating": "Your rating",
+      "yourName": "Your name",
+      "summary": "Summary",
+      "productReview": "Product review",
+      "submitReview": "Submit Review"
+    }
+  }
+}

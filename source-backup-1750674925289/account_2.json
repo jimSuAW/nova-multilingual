@@ -11,7 +11,8 @@
       "heading": "Account Information",
       "section": {
         "contactInformation": "Contact Information",
-        "newsletters": "Newsletters"
+        "newsletters": "Newsletters",
+        "testing02": "testing02"
       },
       "yourName": "Your name",
       "firstName": "First name",

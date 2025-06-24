@@ -1,0 +1,16 @@
+{
+  "address": {
+    "heading": "Address Book",
+    "add": "Add Address",
+    "edit": "Edit Address",
+    "deleteTitle": "Delete Address",
+    "defaultShipping": "Default Shipping Address",
+    "defaultBilling": "Default Billing Address",
+    "setDefaultShipping": "Set as default shipping address",
+    "setDefaultBilling": "Set as default billing address",
+    "confirmDeleteMessage": "Do you want to delete this address?",
+    "deleteSuccess": "Address deleted successfully",
+    "recipient": "Recipient",
+    "address": "Address"
+  }
+}

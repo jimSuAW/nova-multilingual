@@ -1,0 +1,24 @@
+{
+  "cart": {
+    "heading": "Bag",
+    "myCart": "My Bag",
+    "orderSummary": "Order Summary",
+    "itemsInCart": "Total of {count} items",
+    "subtotalLabel": "Subtotal",
+    "subtotalWithAmount": "Subtotal: {amount}",
+    "savings": "Savings",
+    "checkout": "Checkout",
+    "viewCart": "View Cart",
+    "goToCheckout": "Go to checkout",
+    "savingsTag": "You are saving {amount} on your order today!",
+    "promoCodePlaceholder": "Enter promo code",
+    "promoCode": "Promo Code",
+    "removePromoCode": "Remove Promo Code",
+    "emptyCart": "No items in your bag",
+    "emptyCartImgAlt": "empty bag image",
+    "emptyCartDescription": "Your bag is currently empty. Please click the button below to start shopping.",
+    "itemOutOfStock": "Some products in your bag are out of stock, please adjust and try again",
+    "shopNow": "Shop Now",
+    "quantity": "Quantity"
+  }
+}

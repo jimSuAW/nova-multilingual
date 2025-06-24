@@ -1,0 +1,143 @@
+{
+  "order": {
+    "heading": "My Orders",
+    "recentOrders": {
+      "heading": "Recent Orders"
+    },
+    "createStatus": {
+      "successHead": "Success!",
+      "successMessage": "Your order has been successfully completed. Items will be shipped after payment confirmation. Thank you for your purchase.",
+      "failed": "Oops! Order Failed.",
+      "failedMessage": "Your order has not been completed. Please try again or contact customer service.",
+      "somethingWentWrongImageAlt": "Error Image",
+      "successfulImageAlt": "Order Success Image"
+    },
+    "viewAll": "View All",
+    "viewOrder": "View",
+    "noOrders": "No Orders",
+    "showingOrders": "Showing {count} of {total} orders",
+    "id": "Order ID",
+    "number": "Order Number",
+    "date": "Transaction Date",
+    "delivery": "Delivery Method",
+    "status": "Order Status",
+    "paymentAmount": "Transaction Amount",
+    "paymentAmountDetail": "Amount Details",
+    "paymentMethod": "Payment Method",
+    "recipient": {
+      "info": "Recipient Information",
+      "name": "Recipient Name",
+      "phone": "Recipient Phone"
+    },
+    "deliveryDetails": "Delivery Details",
+    "invoice": {
+      "info": "Invoice Information",
+      "detail": "Invoice Detail",
+      "amount": "Invoice Amount",
+      "number": "Invoice Number",
+      "requestPhysical": "Request Physical Invoice",
+      "yes": "Yes",
+      "no": "No",
+      "status": {
+        "heading": "Invoice Status",
+        "pending": "Pending",
+        "issued": "Issued",
+        "voided": "Voided"
+      },
+      "type": "Invoice Type",
+      "type_1": "Personal Carrier",
+      "type_2": "Company Carrier",
+      "type_3": "Donation",
+      "type_4": "Physical Invoice",
+      "carrier_type": "Carrier Type",
+      "personal_carrier": {
+        "member": "Member Carrier",
+        "mobile": "Mobile Barcode",
+        "cdc": "Citizen Digital Certificate",
+        "barcode": "Mobile Barcode",
+        "cdc_number": "CDC Number"
+      },
+      "company_carrier": {
+        "member": "Company Carrier",
+        "tax_id_number": "Tax ID",
+        "title": "Company Title"
+      },
+      "physical": {
+        "tax_id_number": "Tax ID",
+        "title": "Company Title",
+        "address": "Address"
+      },
+      "donate": {
+        "code": "Donation Code",
+        "name": "Donation Organization"
+      },
+      "no_data": "No Invoice Information"
+    },
+    "quantity": "Quantity",
+    "total": "Total",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "pointDiscount": "Point Discount",
+    "shipping": "Shipping",
+    "shippingFree": "Free shipping Eligible",
+    "orderItems": "Order Items",
+    "items": "{count} Item(s)",
+    "trackingInfo": "Tracking Information",
+    "comment": "About Your Refund",
+    "continueShopping": "Continue Shopping",
+    "backToAccount": "Back to Account Center",
+    "backToList": "Back To List",
+    "orderStatus": {
+      "Ordered": "Ordered",
+      "Pending": "Pending",
+      "Processing": "Processing",
+      "Shipped": "Shipped",
+      "Delivered": "Delivered",
+      "Cancelled": "Cancelled",
+      "Payment Review": "Payment Review",
+      "Pending Payment": "Pending Payment",
+      "Canceled": "Canceled",
+      "Complete": "Complete",
+      "Refunded": "Refunded",
+      "Closed": "Closed"
+    },
+    "action": {
+      "cancel": "Cancel Order",
+      "repay": "Repay",
+      "buyAgain": "Buy Again",
+      "requestRefund": "Request Refund"
+    },
+    "shipment": {
+      "heading": "Shipment",
+      "ID": "Shipment ID",
+      "processing": "Shipping Progress",
+      "status": {
+        "heading": "Shipping Status",
+        "unshipped": "Pending Shipment",
+        "productPreparation": "Product Preparation",
+        "packingComplete": "Packing Complete, Waiting for Delivery",
+        "courierEnRoute": "Courier has picked up and is on the way to your location",
+        "deliveryComplete": "Delivery Complete"
+      }
+    },
+    "billing": {
+      "info": "Billing Information",
+      "address": "Billing Address"
+    },
+    "refund": {
+      "heading": "Refund",
+      "ID": "Refund ID",
+      "details": "Refund Details",
+      "total": {
+        "subtotal": "Refund Amount Subtotal",
+        "discounts": "Discounts",
+        "shipping": "Shipping & Handling",
+        "adjustment": "Adjustment Refund",
+        "grandTotal": "Refund Amount Total"
+      }
+    },
+    "expand": "Details",
+    "collapse": "Collapse",
+    "cancelOrderSuccessMessage": "Order has been cancelled"
+  }
+}
