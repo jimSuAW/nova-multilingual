@@ -1,6 +1,6 @@
 # Nova 翻譯管理系統
 
-🌍 企業級多語系翻譯管理平台，支援 Web 介面管理和 Google Translate API 自動翻譯
+專門用來管理 Nova 的前端翻譯包的系統，各專案可部署至該專案的 Zeabur 上，並依照此教學文件來進行多語系管理
 
 ## 📋 功能特色
 
@@ -112,10 +112,6 @@ novaMultilingual/
 - 從 `source/` 英文內容翻譯到目標語言
 - 處理時間：5-60 秒（依內容量而定）
 
-### 備用翻譯引擎
-當 Google Translate API 無法使用時，自動切換到：
-- MyMemory 翻譯服務
-- LibreTranslate 服務
 
 ## 🔧 設定說明
 
