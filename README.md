@@ -1,6 +1,7 @@
 # Nova 翻譯管理系統
 
 專門用來管理 Nova 的前端翻譯包的系統，各專案可部署至該專案的 Zeabur 上，並依照此教學文件來進行多語系管理
+https://www.notion.so/astralweb/Multilingual-21cf4953a61480db9036e7f687eeac7e
 
 ## 📋 功能特色
 
