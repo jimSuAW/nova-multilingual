@@ -6,7 +6,6 @@
     "logout": "Logout",
     "changePassword": "Change Password",
     "changeEmail": "Change Email",
-    "testing01": "testing01",
     "accountInformation": {
       "heading": "Account Information",
       "section": {
@@ -22,8 +21,7 @@
         "heading": "Gender",
         "male": "Male",
         "female": "Female",
-        "other": "Not Specified",
-        "testing03": "testing03"
+        "other": "Not Specified"
       },
       "genderTitle": {
         "male": "Mr.",
